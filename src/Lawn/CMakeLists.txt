@@ -51,9 +51,21 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     PakLib
 )
 
+# Okay. Yes. We get it.
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32 winmm)
+endif()
+
 foreach(FILE_PATH IN LISTS SOURCES)
     file(RELATIVE_PATH REL_PATH "${CMAKE_SOURCE_DIR}/src/Lawn" "${FILE_PATH}")
     get_filename_component(FOLDER_PATH "${REL_PATH}" PATH)
     string(REPLACE "/" "\\" FILTER_PATH "${FOLDER_PATH}")
     source_group("${FILTER_PATH}" FILES "${FILE_PATH}")
 endforeach()
+
+install(TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION "${CMAKE_SOURCE_DIR}/Dist"
+    CONFIGURATIONS Debug
+    FILE_SET PDBS
+    DESTINATION "${CMAKE_SOURCE_DIR}/Dist"
+)
