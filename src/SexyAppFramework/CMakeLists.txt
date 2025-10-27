@@ -2,9 +2,9 @@
 project(SexyAppFramework)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/src/SexyAppFramework/*.c"
-    "${CMAKE_SOURCE_DIR}/src/SexyAppFramework/*.cpp"
-    "${CMAKE_SOURCE_DIR}/src/SexyAppFramework/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 )
 
 # popcap...WHYYYY

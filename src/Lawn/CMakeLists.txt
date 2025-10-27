@@ -2,9 +2,8 @@
 project(LawnProject)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_SOURCE_DIR}/src/Lawn/*.c"
-    "${CMAKE_SOURCE_DIR}/src/Lawn/*.cpp"
-    "${CMAKE_SOURCE_DIR}/src/Lawn/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 )
 
 foreach(EXCLUDED_FILE IN LISTS EXCLUDE_FILES)
