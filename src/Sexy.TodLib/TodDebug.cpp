@@ -136,6 +136,9 @@ void TodLogString(const char* theMsg)
 		OutputDebugString(_S("Failed to write to log file\n"));
 	}
 
+	// @ThePixelMoon; why isn't this using printf already?
+	printf("%s", theMsg);
+
 	fclose(f);
 #endif
 }
