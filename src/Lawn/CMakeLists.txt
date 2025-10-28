@@ -59,16 +59,29 @@ if(WIN32)
 endif()
 
 foreach(FILE_PATH IN LISTS SOURCES)
-    file(RELATIVE_PATH REL_PATH "${CMAKE_SOURCE_DIR}/src/Lawn" "${FILE_PATH}")
-
-    # skip files if . or ..
-    if(REL_PATH MATCHES "^\\.\\.")
-        continue()
-    endif()
+    get_filename_component(EXT "${FILE_PATH}" EXT)
+    file(RELATIVE_PATH REL_PATH "${CMAKE_SOURCE_DIR}/src" "${FILE_PATH}")
 
     get_filename_component(FOLDER_PATH "${REL_PATH}" PATH)
-    string(REPLACE "/" "\\" FILTER_PATH "${FOLDER_PATH}")
-    source_group("${FILTER_PATH}" FILES "${FILE_PATH}")
+    string(REPLACE "/" "\\" FOLDER_PATH "${FOLDER_PATH}")
+
+    if(EXT STREQUAL ".cpp" OR EXT STREQUAL ".c" OR EXT STREQUAL ".cc")
+        set(BASE_GROUP "Source Files")
+    elseif(EXT STREQUAL ".h" OR EXT STREQUAL ".hpp" OR EXT STREQUAL ".hh")
+        set(BASE_GROUP "Header Files")
+    elseif(EXT STREQUAL ".rc" OR EXT STREQUAL ".res")
+        set(BASE_GROUP "Resource Files")
+    else()
+        set(BASE_GROUP "Other Files")
+    endif()
+
+    if(FOLDER_PATH)
+        set(GROUP_NAME "${BASE_GROUP}\\${FOLDER_PATH}")
+    else()
+        set(GROUP_NAME "${BASE_GROUP}")
+    endif()
+
+    source_group("${GROUP_NAME}" FILES "${FILE_PATH}")
 endforeach()
 
 install(TARGETS ${PROJECT_NAME}
