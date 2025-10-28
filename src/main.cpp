@@ -1,6 +1,9 @@
 #include "LawnApp.h"
 #include "Resources.h"
 #include "Sexy.TodLib/TodStringFile.h"
+#ifdef _DEBUG
+#include <zlib.h>
+#endif
 
 using namespace Sexy;
 
@@ -12,6 +15,9 @@ SexyString (*gGetCurrentLevelName)();
 int main()
 {
 	//gHInstance = hInstance;
+#ifdef _DEBUG
+	printf("Using zlib version: %s\n", zlibVersion());
+#endif
 
 	TodStringListSetColors(gLawnStringFormats, gLawnStringFormatCount);
 	gGetCurrentLevelName = LawnGetCurrentLevelName;
