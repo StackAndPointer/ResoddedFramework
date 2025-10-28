@@ -88,6 +88,7 @@ Define OffsetList
 
 CreateLayer               Outline;
 LayerSetImage             Outline 'HouseofTerror16Outline';
+LayerSetBaseOrder         Outline 0;
 LayerSetAscent            Outline 24;
 LayerSetCharWidths        Outline CharList WidthList;
 LayerSetCharWidths        Outline (' ') (5);
@@ -99,6 +100,7 @@ LayerSetPointSize         Outline 16;
 
 CreateLayer               Main;
 LayerSetImage             Main 'HouseofTerror16';
+LayerSetBaseOrder         Main 1;
 LayerSetAscent            Main 24;
 LayerSetCharWidths        Main CharList WidthList;
 LayerSetCharWidths        Main (' ') (5);
