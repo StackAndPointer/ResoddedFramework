@@ -35,6 +35,7 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
     $<$<CONFIG:Debug>:DEBUG>
     $<$<CONFIG:Release>:NDEBUG>
     _LIB
+    DO_FIX_BUGS
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
