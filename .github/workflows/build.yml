@@ -1,0 +1,45 @@
+# I'm old!
+name: Build
+
+on:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        config: [Debug, Release]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@v4
+        with:
+          cmake-version: '3.27.2'
+
+      - name: Create build directory
+        run: mkdir build
+
+      - name: Configure CMake
+        run: cmake -S . -B build -A Win32 -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+
+      - name: Build
+        run: cmake --build build --config ${{ matrix.config }}
+
+      # ok.. installing
+      - name: Install
+        run: cmake --install build --config ${{ matrix.config }}
+
+      - name: Package Dist folder
+        run: |
+          mkdir packaged
+          powershell Compress-Archive -Path "Dist/*" -DestinationPath "packaged/Dist-${{ matrix.config }}.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Dist-${{ matrix.config }}
+          path: packaged/Dist-${{ matrix.config }}.zip
