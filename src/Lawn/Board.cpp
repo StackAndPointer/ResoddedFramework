@@ -519,10 +519,7 @@ void Board::AddGraveStones(int theGridX, int theCount, MTRand &theLevelRNG)
 {
 	TOD_ASSERT(theCount <= MAX_GRID_SIZE_Y);
 
-	// 这里姑且加一个原版没有的、对于本列能否生成墓碑的判断
-	// 如果没有这个判断，当本列不存在足够多的格子可以放置墓碑时，游戏会卡死
 	GridItem *aGridItem = nullptr;
-	//bool aAllowGraveStone[MAX_GRID_SIZE_Y] = { false };
 	int aGridAllowGraveStonesCount = 0;
 	for (int y = 0; y < MAX_GRID_SIZE_Y; y++)
 	{
@@ -537,14 +534,7 @@ void Board::AddGraveStones(int theGridX, int theCount, MTRand &theLevelRNG)
 	while (i < theCount)
 	{
 		int aGridY = theLevelRNG.Next((unsigned long)MAX_GRID_SIZE_Y);
-		//if (aAllowGraveStone[aGridY])
-		//{
-		//	aAllowGraveStone[aGridY] = false;
-		//	GridItem* aGraveStone = AddAGraveStone(theGridX, aGridY);
-		//	++i;
-		//}
-		// 上述写法虽然效率更高，但当 AddAGraveStone() 函数被修改后，不能保证 aAllowGraveStone 仍然有效
-		// 故这里仍然采用如下的原版的写法，仅在上面对 theCount 进行修正
+
 		if (CanAddGraveStoneAt(theGridX, aGridY))
 		{
 			GridItem *aGraveStone = AddAGraveStone(theGridX, aGridY);
@@ -613,9 +603,6 @@ void Board::PutInMissingZombies(int theWaveNumber, ZombiePicker *theZombiePicker
 //0x4092E0
 void Board::PickZombieWaves()
 {
-	// ====================================================================================================
-	// ▲ 设定关卡总波数
-	// ====================================================================================================
 	if (mApp->IsAdventureMode())
 	{
 		if (mApp->IsWhackAZombieLevel())
@@ -659,17 +646,11 @@ void Board::PickZombieWaves()
 			mNumWaves = 40;
 	}
 
-	// ====================================================================================================
-	// ▲ 一些准备工作
-	// ====================================================================================================
 	ZombiePicker aZombiePicker;
 	ZombiePickerInit(&aZombiePicker);
 	ZombieType aIntroZombieType = GetIntroducedZombieType();
 	TOD_ASSERT(mNumWaves <= MAX_ZOMBIE_WAVES);
 
-	// ====================================================================================================
-	// ▲ 遍历每一波并填充每波的出怪列表
-	// ====================================================================================================
 	for (int aWave = 0; aWave < mNumWaves; aWave++)
 	{
 		ZombiePickerInitForWave(&aZombiePicker);
@@ -680,7 +661,6 @@ void Board::PickZombieWaves()
 
 		if (mApp->IsBungeeBlitzLevel() && aIsFlagWave)
 		{
-			// 蹦极闪电战关卡的每大波固定刷出 5 只蹦极僵尸
 			for (int _i = 0; _i < 5; _i++)
 				PutZombieInWave(ZombieType::ZOMBIE_BUNGEE, aWave, &aZombiePicker);
 
@@ -688,11 +668,7 @@ void Board::PickZombieWaves()
 				continue;
 		}
 
-		// ------------------------------------------------------------------------------------------------
-		// △ 计算该波的僵尸总点数
-		// ------------------------------------------------------------------------------------------------
 		int &aZombiePoints = aZombiePicker.mZombiePoints;
-		// 根据关卡计算本波的基础僵尸点数
 		if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_LAST_STAND)
 		{
 			aZombiePoints = (mChallenge->mSurvivalStage * GetNumWavesPerSurvivalStage() + aWave + 10) * 2 / 5 + 1;
@@ -710,7 +686,6 @@ void Board::PickZombieWaves()
 			aZombiePoints = aWave / 3 + 1;
 		}
 
-		// 旗帜波的特殊调整
 		if (aIsFlagWave)
 		{
 			int aPlainZombiesNum = std::min(aZombiePoints, 8);
@@ -727,7 +702,6 @@ void Board::PickZombieWaves()
 			}
 		}
 
-		// 部分关卡的多倍出怪
 		if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_COLUMN)
 		{
 			aZombiePoints *= 6;
@@ -751,10 +725,6 @@ void Board::PickZombieWaves()
 			aZombiePoints *= 2;
 		}
 
-		// ------------------------------------------------------------------------------------------------
-		// △ 向出怪列表中加入固定刷出的僵尸
-		// ------------------------------------------------------------------------------------------------
-		// 部分新出现的僵尸会在特定波固定刷出
 		if (aIntroZombieType != ZombieType::ZOMBIE_INVALID && aIntroZombieType != ZombieType::ZOMBIE_DUCKY_TUBE)
 		{
 			bool aSpawnIntro = false;
@@ -783,20 +753,17 @@ void Board::PickZombieWaves()
 			}
 		}
 
-		// 5-10 关卡的最后一波加入一只伽刚特尔
 		if (mLevel == 50 && aIsFinalWave)
 		{
 			PutZombieInWave(ZombieType::ZOMBIE_GARGANTUAR, aWave, &aZombiePicker);
 		}
-		// 冒险模式关卡的最后一波会出现本关卡可能出现的所有僵尸
+
 		if (mApp->IsAdventureMode() && aIsFinalWave)
 		{
 			PutInMissingZombies(aWave, &aZombiePicker);
 		}
-		// 柱子关卡的特殊出怪
 		if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_COLUMN)
 		{
-			// 每大波的第 5 小波，固定出现 10 只扶梯僵尸
 			if (aWave % 10 == 5)
 			{
 				for (int _i = 0; _i < 10; _i++)
@@ -805,7 +772,6 @@ void Board::PickZombieWaves()
 				}
 			}
 
-			// 每大波的第 8 小波，固定出现 10 只玩偶匣僵尸
 			if (aWave % 10 == 8)
 			{
 				for (int _i = 0; _i < 10; _i++)
@@ -814,7 +780,6 @@ void Board::PickZombieWaves()
 				}
 			}
 
-			// 第 19/29 小波，固定出现 3/5 只伽刚特尔
 			if (aWave == 19)
 			{
 				for (int _i = 0; _i < 3; _i++)
@@ -831,9 +796,6 @@ void Board::PickZombieWaves()
 			}
 		}
 
-		// ------------------------------------------------------------------------------------------------
-		// △ 剩余的僵尸点数用于向列表中补充随机僵尸
-		// ------------------------------------------------------------------------------------------------
 		while (aZombiePoints > 0 && aZombiePicker.mZombieCount < MAX_ZOMBIES_IN_WAVE)
 		{
 			ZombieType aZombieType = PickZombieType(aZombiePoints, aWave, &aZombiePicker);
@@ -1371,21 +1333,12 @@ Rect Board::GetShovelButtonRect()
 //0x40AF00
 void Board::GetZenButtonRect(GameObjectType theObjectType, Rect &theRect)
 {
-	// 此函数与内测版的差异在于，内测版在此函数中通过下列语句先取得了铲子按钮矩形：
-	// Rect aRect = GetShovelButtonRect();
-	// 而原版需要在函数调用前先自行取得铲子按钮矩形，并将该矩形作为参数传递给此函数，
-	// 原版中此函数有将 theRect 的引用作为返回值，但并无直接使用返回值的情况。
-	// 此处为了防止误用返回值而出现问题，故删除其返回值，如需调用可按照如下方式：
-	// Rect aButtonRect = GetShovelButtonRect();
-	// GetZenButtonRect(xxx, aButtonRect);
-
 	if (mApp->mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM)
 	{
 		if (theObjectType == GameObjectType::OBJECT_TYPE_NEXT_GARDEN)
 		{
 			theRect.mX = 30;
 		}
-		//return theRect;
 	}
 
 	theRect.mX = 30;
@@ -1393,7 +1346,6 @@ void Board::GetZenButtonRect(GameObjectType theObjectType, Rect &theRect)
 	for (int anObject = GameObjectType::OBJECT_TYPE_WATERING_CAN; anObject <= GameObjectType::OBJECT_TYPE_NEXT_GARDEN;
 		 anObject++)
 	{
-		// 只要有一个按钮不可用，则所有可用按钮排列的起始横坐标为 30
 		if (!CanUseGameObject((GameObjectType)anObject))
 		{
 			usable = false;
@@ -1406,13 +1358,11 @@ void Board::GetZenButtonRect(GameObjectType theObjectType, Rect &theRect)
 
 	for (int anObject = GameObjectType::OBJECT_TYPE_WATERING_CAN; anObject < theObjectType; anObject++)
 	{
-		// 每存在一个序号小于目标的可用按钮，则目标按钮的横坐标增加 70
 		if (CanUseGameObject((GameObjectType)anObject))
 		{
-			theRect.mX += 70; //Sexy::IMAGE_SHOVELBANK->GetWidth();
+			theRect.mX += 70;
 		}
 	}
-	//return theRect;
 }
 
 //0x40AF90
@@ -1428,13 +1378,9 @@ void Board::InitLevel()
 	{
 		mApp->mMusic->StopAllMusic();
 	}
-	// 赋值当前关卡
 	mLevel = mApp->IsAdventureMode() ? mApp->mPlayerInfo->mLevel : 0;
-	// 设定关卡背景
 	PickBackground();
-	// 设定关卡出怪
 	InitZombieWaves();
-	// 设定关卡初始阳光数量
 	if (aGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED ||
 		aGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED_TWIST || mApp->IsScaryPotterLevel() ||
 		mApp->IsWhackAZombieLevel())
@@ -1458,9 +1404,7 @@ void Board::InitLevel()
 		mSunMoney = 50;
 	}
 
-	// 初始化行选择数组
 	memset(mRowPickingArray, 0, sizeof(mRowPickingArray));
-	// 初始化每行的基础数据
 	for (int aRow = 0; aRow < MAX_GRID_SIZE_Y; aRow++)
 	{
 		mWaveRowGotLawnMowered[aRow] = -100;
@@ -1469,15 +1413,12 @@ void Board::InitLevel()
 		mIceParticleID[aRow] = ParticleSystemID::PARTICLESYSTEMID_NULL;
 		mRowPickingArray[aRow].mItem = aRow;
 	}
-	// 初始化阳光掉落
 	mNumSunsFallen = 0;
 	if (!StageIsNight())
 	{
 		mSunCountDown = RandRangeInt(425, 700);
 	}
-	// 初始化字幕播放记录
 	memset(mHelpDisplayed, 0, sizeof(mHelpDisplayed));
-	// 初始化卡槽及卡牌
 	mSeedBank->mNumPackets = GetNumSeedsInBank();
 	mSeedBank->UpdateWidth();
 	for (int i = 0; i < SEEDBANK_MAX; i++)
@@ -1488,7 +1429,6 @@ void Board::InitLevel()
 		aPacket->mY = 8;
 		aPacket->mPacketType = SeedType::SEED_NONE;
 	}
-	// 设定固定卡牌
 	if (mApp->IsSlotMachineLevel())
 	{
 		TOD_ASSERT(mSeedBank->mNumPackets == 3);
@@ -1615,13 +1555,11 @@ void Board::InitLevel()
 	else if (!ChooseSeedsOnCurrentLevel() && !HasConveyorBeltSeedBank())
 	{
 		mSeedBank->mNumPackets = GetNumSeedsInBank();
-		// 卡槽错误的关卡，依次填充所有卡牌
 		for (int i = 0; i < mSeedBank->mNumPackets; i++)
 		{
 			mSeedBank->mSeedPackets[i].SetPacketType((SeedType)i);
 		}
 	}
-	// 将所有子控件标记为已变动
 	MarkAllDirty();
 
 	mPaused = false;
@@ -1631,7 +1569,6 @@ void Board::InitLevel()
 		mFogBlownCountDown = 200;
 		mFogOffset = 1065 - LeftFogColumn() * 80;
 	}
-	// 关卡玩法相关的初始化
 	mChallenge->InitLevel();
 }
 
@@ -1703,7 +1640,6 @@ void Board::PlaceRake()
 void Board::InitLawnMowers()
 {
 	GameMode aGameMode = mApp->mGameMode;
-	// 这里优化一下原版的代码，事先列举一些不创建小推车的关卡
 	if (aGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED ||
 		aGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED_TWIST ||
 		aGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN || aGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM ||
@@ -1715,9 +1651,9 @@ void Board::InitLawnMowers()
 	for (int aRow = 0; aRow < MAX_GRID_SIZE_Y; aRow++)
 	{
 		if ((aGameMode == GameMode::GAMEMODE_CHALLENGE_RESODDED && aRow <= 4) ||
-			(mApp->IsAdventureMode() && mLevel == 35) || // 这里原版没有对于行的判断，故冒险模式 4-5 关卡有 6 行小推车
+			(mApp->IsAdventureMode() && mLevel == 35) ||
 			(!mApp->IsScaryPotterLevel() &&
-			 mPlantRow[aRow] != PlantRowType::PLANTROW_DIRT)) // 除冒险模式 4-5 关卡外的破罐者模式关卡无小推车
+			 mPlantRow[aRow] != PlantRowType::PLANTROW_DIRT))
 		{
 			LawnMower *aLawnMower = mLawnMowers.DataArrayAlloc();
 			aLawnMower->LawnMowerInitialize(aRow);
@@ -2314,7 +2250,6 @@ void Board::GetPlantsOnLawn(int theGridX, int theGridY, PlantsOnLawn *thePlantOn
 			aSeedType = aPlant->mImitaterType;
 		}
 
-		// 检测植物是否位于目标格子内
 		if (aPlant->mRow != theGridY)
 		{
 			continue;
@@ -2338,7 +2273,6 @@ void Board::GetPlantsOnLawn(int theGridX, int theGridY, PlantsOnLawn *thePlantOn
 			continue;
 		}
 
-		// 将植物写入 thePlantOnLawn 的记录
 		if (Plant::IsFlying(aPlant->mSeedType))
 		{
 			TOD_ASSERT(!thePlantOnLawn->mFlyingPlant);
@@ -2591,11 +2525,7 @@ ZombieType Board::PickZombieType(int theZombiePoints, int theWaveIndex, ZombiePi
 
 		const ZombieDefinition &aZombieDef = GetZombieDefinition((ZombieType)aZombieType);
 
-		// ================================================================================================
-		// ▲ 将不符合出怪限制或超出剩余点数的僵尸类型排除
-		// ================================================================================================
 		GameMode aGameMode = mApp->mGameMode;
-		// 蹦极僵尸在无尽模式中仅在旗帜波出现
 		if (aZombieType == ZombieType::ZOMBIE_BUNGEE && mApp->IsSurvivalEndless(aGameMode))
 		{
 			if (!IsFlagWave(theWaveIndex))
@@ -2603,13 +2533,11 @@ ZombieType Board::PickZombieType(int theZombiePoints, int theWaveIndex, ZombiePi
 				continue;
 			}
 		}
-		// 僵尸最早出现的波数的限制（出怪限制）
 		else if (aGameMode != GameMode::GAMEMODE_CHALLENGE_POGO_PARTY &&
 				 aGameMode != GameMode::GAMEMODE_CHALLENGE_BOBSLED_BONANZA &&
 				 aGameMode != GameMode::GAMEMODE_CHALLENGE_AIR_RAID)
 		{
 			int aFirstAllowedWave = aZombieDef.mFirstAllowedWave;
-			// 无尽模式中，僵尸最早可出现的波数逐渐前移
 			if (mApp->IsSurvivalEndless(aGameMode))
 			{
 				int aFlags = GetSurvivalFlagsCompleted();
@@ -2622,14 +2550,10 @@ ZombieType Board::PickZombieType(int theZombiePoints, int theWaveIndex, ZombiePi
 			}
 		}
 
-		// ================================================================================================
-		// ▲ 生存模式中，根据当前旗帜数等重新计算僵尸的权重
-		// ================================================================================================
 		int aPickWeight = aZombieDef.mPickWeight;
 		if (mApp->IsSurvivalMode())
 		{
 			int aFlags = GetSurvivalFlagsCompleted();
-			// 伽刚特尔和雪橇车僵尸的每波出怪上限
 			if (aZombieType == ZombieType::ZOMBIE_GARGANTUAR || aZombieType == ZombieType::ZOMBIE_ZAMBONI)
 			{
 				if (theZombiePicker->mZombieTypeCount[aZombieType] >=
@@ -2638,7 +2562,6 @@ ZombieType Board::PickZombieType(int theZombiePoints, int theWaveIndex, ZombiePi
 					continue;
 				}
 			}
-			// 红眼的旗帜波出怪上限和非旗帜波出怪总和上限
 			else if (aZombieType == ZombieType::ZOMBIE_REDEYE_GARGANTUAR)
 			{
 				if (IsFlagWave(theWaveIndex))
@@ -2659,7 +2582,6 @@ ZombieType Board::PickZombieType(int theZombiePoints, int theWaveIndex, ZombiePi
 					aPickWeight = 1000;
 				}
 			}
-			// 普通僵尸和路障僵尸的权重衰减
 			else if (aZombieType == ZombieType::ZOMBIE_NORMAL)
 			{
 				aPickWeight = TodAnimateCurve(10, 50, aFlags, aPickWeight, aPickWeight / 10, TodCurves::CURVE_LINEAR);
@@ -2674,7 +2596,6 @@ ZombieType Board::PickZombieType(int theZombiePoints, int theWaveIndex, ZombiePi
 		aPickCount++;
 	}
 
-	// 加权随机地取得一种可能的僵尸类型并返回
 	return (ZombieType)TodPickFromWeightedArray(aZombieWeightArray, aPickCount);
 }
 
@@ -2694,15 +2615,15 @@ bool Board::RowCanHaveZombieType(int theRow, ZombieType theZombieType)
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_RESODDED && mPlantRow[theRow] == PlantRowType::PLANTROW_DIRT &&
 		mCurrentWave < 5)
 	{
-		return false; // 无草皮之地关卡，无草皮的行在前 5 波不刷出僵尸
+		return false;
 	}
 	if (mPlantRow[theRow] == PlantRowType::PLANTROW_POOL && !Zombie::ZombieTypeCanGoInPool(theZombieType))
 	{
-		return false; // 水路不会刷出不能进入泳池的僵尸
+		return false;
 	}
 	if (mPlantRow[theRow] == PlantRowType::PLANTROW_HIGH_GROUND && !Zombie::ZombieTypeCanGoOnHighGround(theZombieType))
 	{
-		return false; // 高地不会刷出不能走上高地的僵尸
+		return false;
 	}
 
 	int aCurrentWave = mCurrentWave;
@@ -2710,7 +2631,6 @@ bool Board::RowCanHaveZombieType(int theRow, ZombieType theZombieType)
 	{
 		aCurrentWave += mChallenge->mSurvivalStage * GetNumWavesPerSurvivalStage();
 	}
-	// 非水路不能刷出水路僵尸；前 5 小波，水面仅刷出潜水僵尸或海豚骑士僵尸
 	if (mPlantRow[theRow] == PlantRowType::PLANTROW_POOL)
 	{
 		if (aCurrentWave < 5 && !IsZombieTypePoolOnly(theZombieType))
@@ -2722,12 +2642,10 @@ bool Board::RowCanHaveZombieType(int theRow, ZombieType theZombieType)
 	{
 		return false;
 	}
-	// 雪橇僵尸小队仅能在有冰道的行刷出
 	if (theZombieType == ZOMBIE_BOBSLED && !mIceTimer[theRow])
 	{
 		return false;
 	}
-	// “自古一路无巨人”（生存模式除外）
 	if (theRow == 0 && !mApp->IsSurvivalMode())
 	{
 		if (theZombieType == ZombieType::ZOMBIE_GARGANTUAR || theZombieType == ZombieType::ZOMBIE_REDEYE_GARGANTUAR)
@@ -2735,21 +2653,17 @@ bool Board::RowCanHaveZombieType(int theRow, ZombieType theZombieType)
 			return false;
 		}
 	}
-	// 非舞王僵尸或当前为泳池关卡，则可以刷出该僵尸
 	if (theZombieType != ZombieType::ZOMBIE_DANCER || StageHasPool())
 	{
 		return true;
 	}
-	// 舞王僵尸在非泳池关卡中，为保证能召唤伴舞僵尸，仅在中间三行刷出
 	return RowCanHaveZombies(theRow - 1) && RowCanHaveZombies(theRow + 1);
 }
 
 //0x40DC50
 int Board::PickRowForNewZombie(ZombieType theZombieType)
 {
-	// ====================================================================================================
-	// ▲ 当存在正在寻找目标僵尸的钉耙，且僵尸可以出现在钉耙所在行时，优先出现在钉耙所在行
-	// ====================================================================================================
+
 	GridItem *aRake = GetRake();
 	if (aRake && aRake->mGridItemState == GridItemState::GRIDITEM_STATE_RAKE_ATTRACTING &&
 		RowCanHaveZombieType(aRake->mGridY, theZombieType))
@@ -2759,27 +2673,20 @@ int Board::PickRowForNewZombie(ZombieType theZombieType)
 		return aRake->mGridY;
 	}
 
-	// ====================================================================================================
-	// ▲ 遍历每一行，将所有能允许该僵尸出现的行及其对应权重写入挑选数组中
-	// ====================================================================================================
 	for (int aRow = 0; aRow < MAX_GRID_SIZE_Y; aRow++)
 	{
-		// 如果本行不能出现目标僵尸，则将本行权重置零，并继续下一行
 		if (!RowCanHaveZombieType(aRow, theZombieType))
 		{
 			mRowPickingArray[aRow].mWeight = 0;
 		}
-		// 保护传送门关卡中，每行的出怪概率受传送门位置影响
 		else if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_PORTAL_COMBAT)
 		{
 			mRowPickingArray[aRow].mWeight = mChallenge->PortalCombatRowSpawnWeight(aRow);
 		}
-		// 隐形食脑者关卡中，前 3 波第六路不出怪
 		else if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_INVISIGHOUL && mCurrentWave <= 3 && aRow == 5)
 		{
 			mRowPickingArray[aRow].mWeight = 0;
 		}
-		// 丢车保护
 		else
 		{
 			int aWavesMowered = mCurrentWave - mWaveRowGotLawnMowered[aRow];
@@ -2901,13 +2808,11 @@ bool Board::IsIceAt(int theGridX, int theGridY)
 //0x40E020
 PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedType)
 {
-	// 目标位置不在场地内，则返回“不能种在那里”
 	if (theGridX < 0 || theGridX >= MAX_GRID_SIZE_X || theGridY < 0 || theGridY >= MAX_GRID_SIZE_Y)
 	{
 		return PlantingReason::PLANTING_NOT_HERE;
 	}
 
-	// 从关卡玩法上，判断能否种植
 	PlantingReason aReason = mChallenge->CanPlantAt(theGridX, theGridY, theSeedType);
 	if (aReason != PlantingReason::PLANTING_OK || Challenge::IsZombieSeedType(theSeedType))
 	{
@@ -2931,7 +2836,6 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 		return PlantingReason::PLANTING_OK;
 	}
 
-	// 墓碑吞噬者只能种植在墓碑上
 	bool aHasGrave = GetGraveStoneAt(theGridX, theGridY);
 	if (theSeedType == SeedType::SEED_GRAVEBUSTER)
 	{
@@ -2958,7 +2862,6 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 
 		return PlantingReason::PLANTING_OK;
 	}
-	// 非墓碑吞噬者且非飞行植物，则不能种在墓碑上
 	if (aHasGrave)
 	{
 		return Plant::IsFlying(theSeedType) ? PlantingReason::PLANTING_OK : PlantingReason::PLANTING_NOT_ON_GRAVE;
@@ -2976,7 +2879,6 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 		aHasLilypad = aUnderPlant->mSeedType == SeedType::SEED_LILYPAD;
 		aHasFlowerPot = aUnderPlant->mSeedType == SeedType::SEED_FLOWERPOT;
 	}
-	// 部分情况下的格子中不能种植植物
 	if (GetCraterAt(theGridX, theGridY))
 	{
 		return PlantingReason::PLANTING_NOT_ON_CRATER;
@@ -2990,7 +2892,6 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 	{
 		return PlantingReason::PLANTING_NOT_HERE;
 	}
-	// 水生植物只能种在水上
 	Plant *aNormalPlant = aPlantOnLawn.mNormalPlant;
 	if (theSeedType == SeedType::SEED_LILYPAD || theSeedType == SeedType::SEED_TANGLEKELP ||
 		theSeedType == SeedType::SEED_SEASHROOM)
@@ -3006,7 +2907,6 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 	{
 		return aPlantOnLawn.mFlyingPlant ? PlantingReason::PLANTING_NOT_HERE : PlantingReason::PLANTING_OK;
 	}
-	// 地刺/地刺王只能种在坚固的地面
 	if (theSeedType == SeedType::SEED_SPIKEWEED || theSeedType == SeedType::SEED_SPIKEROCK)
 	{
 		if (aGridSquare == GridSquareType::GRIDSQUARE_POOL || StageHasRoof() || aUnderPlant)
@@ -3014,7 +2914,6 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 			return PlantingReason::PLANTING_NEEDS_GROUND;
 		}
 	}
-	// 非水生植物不能种在水面上（南瓜头可以种在香蒲上）
 	Plant *aPumpkinPlant = aPlantOnLawn.mPumpkinPlant;
 	if (aGridSquare == GridSquareType::GRIDSQUARE_POOL && !aHasLilypad && theSeedType != SeedType::SEED_CATTAIL)
 	{
@@ -3024,32 +2923,26 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 			return PlantingReason::PLANTING_NOT_ON_WATER;
 		}
 	}
-	// 花盆的种植条件
 	if (theSeedType == SeedType::SEED_FLOWERPOT)
 	{
 		return (aNormalPlant || aUnderPlant || aPumpkinPlant) ? PlantingReason::PLANTING_NOT_HERE
 															  : PlantingReason::PLANTING_OK;
 	}
-	// 屋顶种植需要花盆
 	if (StageHasRoof() && !aHasFlowerPot)
 	{
 		return PlantingReason::PLANTING_NEEDS_POT;
 	}
-	// 南瓜头的种植条件
 	bool aAidPurchased = mApp->mPlayerInfo->mPurchases[StoreItem::STORE_ITEM_FIRSTAID] > 0;
 	if (theSeedType == SeedType::SEED_PUMPKINSHELL)
 	{
-		// 不可种植在玉米加农炮上
 		if (aNormalPlant && aNormalPlant->mSeedType == SeedType::SEED_COBCANNON)
 		{
 			return PlantingReason::PLANTING_NOT_HERE;
 		}
-		// 无南瓜头时，可以种植南瓜头
 		if (!aPumpkinPlant)
 		{
 			return PlantingReason::PLANTING_OK;
 		}
-		// 南瓜头的坚果包扎术
 		if (aAidPurchased && aPumpkinPlant->mPlantHealth < aPumpkinPlant->mPlantMaxHealth * 2 / 3 &&
 			aPumpkinPlant->mSeedType == SeedType::SEED_PUMPKINSHELL &&
 			aPumpkinPlant->mOnBungeeState != PlantOnBungeeState::GETTING_GRABBED_BY_BUNGEE)
@@ -3059,7 +2952,6 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 
 		return PlantingReason::PLANTING_NOT_HERE;
 	}
-	// 土豆地雷只能种在陆地上
 	if (aHasLilypad && theSeedType == SeedType::SEED_POTATOMINE)
 	{
 		return PlantingReason::PLANTING_ONLY_ON_GROUND;
@@ -3067,7 +2959,6 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 
 	if (aUnderPlant)
 	{
-		// 香蒲对底端植物的紫卡升级
 		if (theSeedType == SeedType::SEED_CATTAIL)
 		{
 			if (aNormalPlant)
@@ -3086,7 +2977,6 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 		}
 		else
 		{
-			// 模仿中的模仿者不可作为花盆或睡莲
 			if (aUnderPlant->mSeedType == SeedType::SEED_IMITATER)
 			{
 				return PlantingReason::PLANTING_NOT_HERE;
@@ -3094,10 +2984,8 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 		}
 	}
 
-	// 一般紫卡植物的更迭判断
 	if (aNormalPlant)
 	{
-		// 紫卡植物的升级
 		if (aNormalPlant->IsUpgradableTo(theSeedType) &&
 			aNormalPlant->mOnBungeeState != PlantOnBungeeState::GETTING_GRABBED_BY_BUNGEE)
 		{
@@ -3108,7 +2996,6 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 			return PlantingReason::PLANTING_NEEDS_UPGRADE;
 		}
 
-		// 坚果包扎术
 		if ((theSeedType == SeedType::SEED_WALLNUT || theSeedType == SeedType::SEED_TALLNUT) && aAidPurchased)
 		{
 			if (aNormalPlant->mPlantHealth < aNormalPlant->mPlantMaxHealth * 2 / 3 &&
@@ -3122,7 +3009,6 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 		return PlantingReason::PLANTING_NOT_HERE;
 	}
 
-	// 免费种植模式下紫卡的额外判断
 	if (!mApp->mEasyPlantingCheat && Plant::IsUpgrade(theSeedType))
 	{
 		return PlantingReason::PLANTING_NEEDS_UPGRADE;
@@ -3266,15 +3152,12 @@ Zombie *Board::ZombieHitTest(int theMouseX, int theMouseY)
 	Zombie *aRecord = nullptr;
 	while (IterateZombies(aZombie))
 	{
-		// 排除已死亡的僵尸
 		if (aZombie->mDead || aZombie->IsDeadOrDying())
 			continue;
 
-		// 排除关卡引入阶段及选卡界面的植物僵尸
 		if (mApp->mGameScene == GameScenes::SCENE_LEVEL_INTRO && Zombie::IsZombotany(aZombie->mZombieType))
 			continue;
 
-		// 范围判定
 		if (aZombie->GetZombieRect().Contains(theMouseX, theMouseY))
 		{
 			if (aRecord == nullptr || aZombie->mY > aRecord->mY)
@@ -3367,7 +3250,6 @@ void Board::UpdateMousePosition()
 	int aMouseX = mApp->mWidgetManager->mLastMouseX - mX;
 	int aMouseY = mApp->mWidgetManager->mLastMouseY - mY;
 
-	// 破罐者关卡中，检测并高亮鼠标悬浮的罐子
 	if (mApp->IsScaryPotterLevel())
 	{
 		GridItem *aGridItem = nullptr;
@@ -3389,7 +3271,6 @@ void Board::UpdateMousePosition()
 		}
 	}
 
-	// 禅境花园，设定蜗牛的高亮与否
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN)
 	{
 		GridItem *aStinky = mApp->mZenGarden->GetStinky();
@@ -3401,7 +3282,6 @@ void Board::UpdateMousePosition()
 		}
 	}
 
-	// 手持铲子或花园工具时，令作用的植物高亮
 	if (mCursorObject->mCursorType == CursorType::CURSOR_TYPE_SHOVEL ||
 		mCursorObject->mCursorType == CursorType::CURSOR_TYPE_WATERING_CAN ||
 		mCursorObject->mCursorType == CursorType::CURSOR_TYPE_FERTILIZER ||
@@ -3417,7 +3297,6 @@ void Board::UpdateMousePosition()
 		return;
 	}
 
-	// 咖啡豆及坚果包扎术
 	if (aCursorSeedType == SeedType::SEED_INSTANT_COFFEE)
 	{
 		int aGridX =
@@ -3853,7 +3732,7 @@ void Board::MouseDownCobcannonFire(int x, int y, int theClickCount)
 	{
 		if (mCobCannonCursorDelayCounter > 0 && Distance2D(x, y, mCobCannonMouseX, mCobCannonMouseY) < 100.0f)
 		{
-			return; // 误点检测：点击加农炮后的 30cs 内，点击的位置和准心位置之间的距离小于 100 时，将被判定为误点
+			return;
 		}
 
 		if (mCursorObject->mCursorType != CursorType::CURSOR_TYPE_PLANT_FROM_DUPLICATOR)
@@ -3871,7 +3750,6 @@ void Board::MouseDownCobcannonFire(int x, int y, int theClickCount)
 //0x40FD30
 void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 {
-	// 右击鼠标：放下卡牌
 	if (theClickCount < 0)
 	{
 		RefreshSeedPacketFromCursor();
@@ -3879,7 +3757,6 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 		return;
 	}
 
-	// 我是僵尸模式中，交由 Challenge 处理
 	if (mApp->IsIZombieLevel())
 	{
 		mChallenge->IZombieMouseDownWithZombie(x, y, theClickCount);
@@ -3890,7 +3767,6 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 	int aGridX = PlantingPixelToGridX(x, y, aPlantingSeedType);
 	int aGridY = PlantingPixelToGridY(x, y, aPlantingSeedType);
 
-	// 不在场地内的点击：放下卡牌
 	if (aGridX < 0 || aGridX >= MAX_GRID_SIZE_X || aGridY < 0 || aGridY > MAX_GRID_SIZE_Y)
 	{
 		RefreshSeedPacketFromCursor();
@@ -3908,7 +3784,6 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 		}
 #endif
 
-		// 根据不同的种植原因播放相应的提示字幕
 		if (aReason == PlantingReason::PLANTING_ONLY_ON_GRAVES)
 		{
 			DisplayAdvice("[ADVICE_GRAVEBUSTERS_ON_GRAVES]",
@@ -4084,18 +3959,14 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 						  AdviceType::ADVICE_PLANTING_NEED_SLEEPING);
 		}
 
-		// 特定情况下，放下原有手持的植物
 		if (mCursorObject->mCursorType == CursorType::CURSOR_TYPE_PLANT_FROM_GLOVE || mApp->IsWhackAZombieLevel())
 		{
 			RefreshSeedPacketFromCursor();
 			mApp->PlayFoley(FoleyType::FOLEY_DROP);
 		}
-		// 不可种植的情况至此结束，直接跳转至返回
 		return;
 	}
 
-	/* 以下为植物类型可以种植的情况 */
-	// 清除种植相关的提示字幕
 	ClearAdvice(AdviceType::ADVICE_PLANTING_NEED_SLEEPING);
 	ClearAdvice(AdviceType::ADVICE_CANT_PLANT_THERE);
 	ClearAdvice(AdviceType::ADVICE_PLANTING_NEEDS_GROUND);
@@ -4120,7 +3991,6 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 	ClearAdvice(AdviceType::ADVICE_PLANT_POTATOE_MINE_ON_LILY);
 	ClearAdvice(AdviceType::ADVICE_SURVIVE_FLAGS);
 
-	// 无免费种植、非传送带关卡的卡槽植物，判断阳光是否充足：充足则扣除阳光，不足则退出
 	if (!mApp->mEasyPlantingCheat && mCursorObject->mCursorType == CursorType::CURSOR_TYPE_PLANT_FROM_BANK &&
 		!HasConveyorBeltSeedBank())
 	{
@@ -4130,7 +4000,6 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 		}
 	}
 
-	// 升级种植或坚果包扎术等情况时，先将原植物销毁
 	bool aIsAwake = false;
 	int aWakeUpCounter = 0;
 	PlantsOnLawn aPlantOnLawn;
@@ -4214,7 +4083,6 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 		TOD_ASSERT();
 	}
 
-	// 柱子关卡中，一列种植
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_COLUMN)
 	{
 		for (int aRow = 0; aRow < MAX_GRID_SIZE_Y; aRow++)
@@ -4242,7 +4110,6 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 		}
 	}
 
-	// 设置教程状态相关
 	if (mTutorialState == TutorialState::TUTORIAL_LEVEL_1_PLANT_PEASHOOTER)
 	{
 		SetTutorialState(mPlants.mSize >= 2 ? TutorialState::TUTORIAL_LEVEL_1_COMPLETED
@@ -4297,13 +4164,11 @@ void Board::MouseDownWithPlant(int x, int y, int theClickCount)
 		}
 	}
 
-	// 保龄球关卡，播放保龄球滚动的音效
 	if (mApp->IsWallnutBowlingLevel())
 	{
 		mApp->PlaySample(Sexy::SOUND_BOWLING);
 	}
 
-	// 重置鼠标
 	ClearCursor();
 }
 
@@ -4465,7 +4330,6 @@ bool Board::MouseHitTestPlant(int x, int y, HitResult *theHitResult)
 		}
 	}
 
-	// 植物不存在，或者手持巧克力但植物不需要巧克力时，返回“否”
 	if (aPlant == nullptr)
 	{
 		return false;
@@ -5382,7 +5246,7 @@ void Board::SpawnZombieWave()
 			{
 				for (int i = 0; i < MAX_ZOMBIE_FOLLOWERS; i++)
 				{
-					AddZombie(ZombieType::ZOMBIE_NORMAL, mCurrentWave); // 生成 4 只普通僵尸以代替雪橇僵尸小队
+					AddZombie(ZombieType::ZOMBIE_NORMAL, mCurrentWave);
 				}
 			}
 			else
@@ -5549,7 +5413,7 @@ void Board::ZombiesWon(Zombie *theZombie)
 	else
 	{
 		mApp->mGameScene = GameScenes::SCENE_ZOMBIES_WON;
-		if (theZombie) // 原版此处没有对 theZombie 进行空指针判断，但加上判断后便允许绕过僵尸而直接调用游戏失败
+		if (theZombie)
 		{
 			theZombie->WalkIntoHouse();
 		}
@@ -5901,53 +5765,43 @@ void Board::UpdateProgressMeter()
 	}
 	else if (mCurrentWave != 0)
 	{
-		// 更新旗帜升起倒计时
 		if (mFlagRaiseCounter > 0)
 			mFlagRaiseCounter--;
 
-		int aTotalWidth = 150;						 // 可用于平均分配给每一小波的进度条总长度
-		int aNumWavesPerFlag = GetNumWavesPerFlag(); // 本关卡中每相邻两个旗帜波之前的小波数量
-		bool aHasFlags = ProgressMeterHasFlags();	 // 进度条标注旗帜时，旗帜波占用更长的进度条
+		int aTotalWidth = 150;
+		int aNumWavesPerFlag = GetNumWavesPerFlag();
+		bool aHasFlags = ProgressMeterHasFlags();
 		if (aHasFlags)
 		{
-			aTotalWidth -= 12 * mNumWaves / aNumWavesPerFlag; // 从每个旗帜波分割出 12 单位的长度
+			aTotalWidth -= 12 * mNumWaves / aNumWavesPerFlag;
 		}
 
-		int aWaveLength = aTotalWidth / (mNumWaves - 1);							 // 每一小波占用的进度条长度
-		int aCurrentWaveLength = (mCurrentWave - 1) * aTotalWidth / (mNumWaves - 1); // 当前波开始时的进度条长度
-		int aNextWaveLength = mCurrentWave * aTotalWidth / (mNumWaves - 1);			 // 下一波开始时的进度条长度
+		int aWaveLength = aTotalWidth / (mNumWaves - 1);
+		int aCurrentWaveLength = (mCurrentWave - 1) * aTotalWidth / (mNumWaves - 1);
+		int aNextWaveLength = mCurrentWave * aTotalWidth / (mNumWaves - 1);
 		if (aHasFlags)
 		{
-			int anExtraLength = mCurrentWave / aNumWavesPerFlag * 12; // 归还已刷新的旗帜波分割的长度
+			int anExtraLength = mCurrentWave / aNumWavesPerFlag * 12;
 			aCurrentWaveLength += anExtraLength;
 			aNextWaveLength += anExtraLength;
 		}
 
-		// 根据倒计时初步计算当前波已经过的比例
 		float aFraction = (mZombieCountDownStart - mZombieCountDown) / (float)mZombieCountDownStart;
 		if (mZombieHealthToNextWave != -1)
 		{
-			// 取得本波僵尸的当前血量
 			int aHealthCurrent = TotalZombiesHealthInWave(mCurrentWave - 1);
-			// 取得（本波开始时的僵尸总血量 - 下一波刷新时的僵尸总血量），即：本波刷新需要对僵尸造成的伤害
-			int aDamageTarget = mZombieHealthWaveStart - mZombieHealthToNextWave; //开始时的血量 - 刷新时的血量
+			int aDamageTarget = mZombieHealthWaveStart - mZombieHealthToNextWave;
 			if (aDamageTarget < 1)
 			{
-				aDamageTarget = 1; // 需要的伤害至少为 1
+				aDamageTarget = 1;
 			}
-			// 再次以刷新血量计算一次当前波已经过的比例
-			// 血量比例 = [目标伤害 - (当前血量 - 刷新血量)] / 目标伤害 = (目标伤害 - 仍需造成的伤害) / 目标伤害 = 当前伤害 / 目标伤害
 			float aHealthFraction = (aDamageTarget - aHealthCurrent + mZombieHealthToNextWave) / (float)aDamageTarget;
-			// 最终比例取上述二者的较大值
 			aFraction = std::max(aHealthFraction, aFraction);
 		}
 
-		// 计算当前应当的进度条长度，并将长度的范围限定在 [1, 150] 之间
 		int aLength =
 			ClampInt(aCurrentWaveLength + FloatRoundToInt((aNextWaveLength - aCurrentWaveLength) * aFraction), 1, 150);
-		// 取得当前实际与理论的进度条长度之差
 		int aDelta = aLength - mProgressMeterWidth;
-		// 当差值不超过一波的长度时，每 20cs 调整一次长度；否则，每 5cs 调整一次长度
 		if ((aDelta > aWaveLength && (mMainCounter % 5 == 0)) || (aDelta > 0 && (mMainCounter % 20 == 0)))
 		{
 			mProgressMeterWidth++;
@@ -5997,7 +5851,6 @@ void Board::UpdateTutorial()
 		}
 	}
 
-	// 冒险模式初期关卡，检测到向日葵数量小于 3 时，进入“更多向日葵”的教程
 	if (mApp->IsFirstTimeAdventureMode() && mLevel >= 3 && mLevel != 5 && mLevel <= 7 &&
 		mTutorialState == TutorialState::TUTORIAL_OFF && mCurrentWave >= 5 && !gShownMoreSunTutorial &&
 		mSeedBank->mSeedPackets[1].CanPickUp() && CountPlantByType(SeedType::SEED_SUNFLOWER) < 3)
@@ -7590,9 +7443,6 @@ void Board::DrawProgressMeter(Graphics *g)
 	if (!HasProgressMeter())
 		return;
 
-	// ====================================================================================================
-	// ▲ 绘制进度条进度部分的贴图
-	// ====================================================================================================
 	g->DrawImageCel(Sexy::IMAGE_FLAGMETER, 600, 575, 0);
 	int aCelWidth = Sexy::IMAGE_FLAGMETER->GetCelWidth();
 	int aCelHeight = Sexy::IMAGE_FLAGMETER->GetCelHeight();
@@ -7601,9 +7451,6 @@ void Board::DrawProgressMeter(Graphics *g)
 	Rect aDstRect(aCelWidth - aClipWidth + 593, 575, aClipWidth, aCelHeight);
 	g->DrawImage(Sexy::IMAGE_FLAGMETER, aDstRect, aSrcRect);
 
-	// ====================================================================================================
-	// ▲ 根据不同关卡，绘制进度条上的文字或旗帜
-	// ====================================================================================================
 	int aPosX = aCelWidth / 2 + 600;
 	Color aColor(224, 187, 98);
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED ||
@@ -7646,10 +7493,10 @@ void Board::DrawProgressMeter(Graphics *g)
 	{
 		int aNumWavesPerFlag = GetNumWavesPerFlag();
 		int aNumFlagWaves = mNumWaves / aNumWavesPerFlag;
-		int aFlagsPosEnd = 590 + aCelWidth; // 旗帜区域的右界横坐标
+		int aFlagsPosEnd = 590 + aCelWidth;
 		for (int aFlagWave = 1; aFlagWave <= aNumFlagWaves; aFlagWave++)
 		{
-			// 取得旗帜升起时的高度偏移
+
 			int aHeight = 0;
 			int aTotalWavesAtFlag = aFlagWave * aNumWavesPerFlag;
 			if (aTotalWavesAtFlag < mCurrentWave)
@@ -7660,27 +7507,20 @@ void Board::DrawProgressMeter(Graphics *g)
 			{
 				aHeight = TodAnimateCurve(100, 0, mFlagRaiseCounter, 0, 14, TodCurves::CURVE_LINEAR);
 			}
-			// 计算旗帜的横坐标
+	
 			int aPosX = TodAnimateCurve(0, mNumWaves, aTotalWavesAtFlag, aFlagsPosEnd, 606, TodCurves::CURVE_LINEAR);
-			// 绘制旗杆
+
 			g->DrawImageCel(Sexy::IMAGE_FLAGMETERPARTS, aPosX, 571, 1, 0);
-			// 绘制旗帜
 			g->DrawImageCel(Sexy::IMAGE_FLAGMETERPARTS, aPosX, 572 - aHeight, 2, 0);
 		}
 	}
 
-	// ====================================================================================================
-	// ▲ 绘制进度条的额外部分
-	// ====================================================================================================
-	// 绘制“关卡进程”的小牌子
 	g->DrawImage(Sexy::IMAGE_FLAGMETERLEVELPROGRESS, 638, 589);
-	// 判断是否需要绘制进度条当前位置处的小僵尸头，不需要则直接返回
 	if (mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED ||
 		mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_BEGHOULED_TWIST ||
 		mApp->mGameMode == GameMode::GAMEMODE_CHALLENGE_ZOMBIQUARIUM || mApp->IsSquirrelLevel() ||
 		mApp->IsSlotMachineLevel() || mApp->IsIZombieLevel() || mApp->IsFinalBossLevel())
 		return;
-	// 绘制僵尸头
 	int aHeadProgress = TodAnimateCurve(0, 150, mProgressMeterWidth, 0, 135, CURVE_LINEAR);
 	g->DrawImageCel(Sexy::IMAGE_FLAGMETERPARTS, aCelWidth - aHeadProgress + 580, 572, 0, 0);
 }
@@ -7738,9 +7578,7 @@ void Board::DrawHouseDoorTop(Graphics *g)
 //0x417DA0
 void Board::DrawLevel(Graphics *g)
 {
-	// ====================================================================================================
-	// ▲ 获取完整的关卡名称的字符串
-	// ====================================================================================================
+
 	SexyString aLevelStr;
 	if (mApp->IsAdventureMode())
 	{
@@ -7774,9 +7612,6 @@ void Board::DrawLevel(Graphics *g)
 		}
 	}
 
-	// ====================================================================================================
-	// ▲ 正式开始绘制关卡名称字符串
-	// ====================================================================================================
 	int aPosX = 780;
 	int aPosY = 595;
 	if (HasProgressMeter())
@@ -7866,7 +7701,7 @@ void Board::DrawZenButtons(Graphics *g)
 			g->DrawImage(Sexy::IMAGE_SHOVELBANK, aButtonRect.mX, aButtonRect.mY + aOffsetY);
 			if ((int)mCursorObject->mCursorType == (int)CursorType::CURSOR_TYPE_WATERING_CAN + (int)aTool - 6)
 			{
-				continue; // 如果工具正在被手持，则跳过绘制
+				continue;
 			}
 
 			if (aTool == GameObjectType::OBJECT_TYPE_WATERING_CAN)
@@ -8657,19 +8492,13 @@ void Board::DrawFog(Graphics *g)
 			if (aFadeAmount == 0)
 				continue;
 
-			// 取得格子内的雾的形状（第 6 行的雾的形状采用与第 0 行相同）
-			// { sub eax,edx } 向前 [y / 6] 列，但 y 超出上限 y - 5 行，故相当于列不变，行 = y % 6；
 			int aCelLook = mGridCelLook[x][y % MAX_GRID_SIZE_Y];
 			int aCelCol = aCelLook % 8;
-			// 本格浓雾横坐标 = 列 * 80 + 浓雾偏移 - 15，纵坐标 = 行 * 85 + 20
 			float aPosX = x * 80 + mFogOffset - 15;
 			float aPosY = y * 85 + 20;
-			// 开始计算周期变化的颜色，aTime 为根据主计时计算的时间
 			float aTime = mMainCounter * PI * 2;
-			// 与行、列有关的初始相位
 			float aPhaseX = 6 * PI * x / MAX_GRID_SIZE_X;
 			float aPhaseY = 6 * PI * y / (MAX_GRID_SIZE_Y + 1);
-			// 根据初相和时间计算当前相位
 			float aMotion = 13 + 4 * sin(aTime / 900 + aPhaseY) + 8 * sin(aTime / 500 + aPhaseX);
 
 			int aColorVariant = 255 - aCelLook * 1.5 - aMotion * 1.5;
@@ -10370,10 +10199,10 @@ int GetRectOverlap(const Rect &rect1, const Rect &rect2)
 //0x41C850
 bool GetCircleRectOverlap(int theCircleX, int theCircleY, int theRadius, const Rect &theRect)
 {
-	int dx = 0;		   // 圆心与矩形较近一条纵边的横向距离
-	int dy = 0;		   // 圆心与矩形较近一条横边的纵向距离
-	bool xOut = false; // 圆心横坐标是否不在矩形范围内
-	bool yOut = false; // 圆心纵坐标是否不在矩形范围内
+	int dx = 0;
+	int dy = 0;
+	bool xOut = false;
+	bool yOut = false;
 
 	if (theCircleX < theRect.mX)
 	{
@@ -10396,7 +10225,7 @@ bool GetCircleRectOverlap(int theCircleX, int theCircleY, int theRadius, const R
 		dy = theCircleY - theRect.mY - theRect.mHeight;
 	}
 
-	if (!xOut && !yOut) // 如果圆心在矩形内
+	if (!xOut && !yOut)
 	{
 		return true;
 	}

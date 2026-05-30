@@ -381,23 +381,23 @@ void LawnApp::KillBoard()
 //0x44F410
 bool LawnApp::CanPauseNow()
 {
-	if (mBoard == nullptr) // 不在关卡内
+	if (mBoard == nullptr)
 		return false;
 
-	if (mSeedChooserScreen && mSeedChooserScreen->mMouseVisible) // 处于选卡界面
+	if (mSeedChooserScreen && mSeedChooserScreen->mMouseVisible)
 		return false;
 
-	if (mBoard->mBoardFadeOutCounter >= 0) // 退出关卡过程中
+	if (mBoard->mBoardFadeOutCounter >= 0)
 		return false;
 
-	if (mCrazyDaveState != CrazyDaveState::CRAZY_DAVE_OFF) // 存在戴夫
+	if (mCrazyDaveState != CrazyDaveState::CRAZY_DAVE_OFF)
 		return false;
 
 	if (mGameMode == GameMode::GAMEMODE_CHALLENGE_ZEN_GARDEN ||
-		mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM) // 处于禅境花园或智慧树
+		mGameMode == GameMode::GAMEMODE_TREE_OF_WISDOM)
 		return false;
 
-	return GetDialogCount() <= 0; // 不存在对话
+	return GetDialogCount() <= 0;
 }
 
 void LawnApp::GotFocus()
@@ -1269,18 +1269,6 @@ void LawnApp::Init()
 		mOnlyAllowOneCopyToRun = true;
 	}
 
-	//if (!gSexyCache->Connected() &&
-	//	gLawnApp->mTodCheatKeys &&
-	//	MessageBox(gLawnApp->mHWnd, "Start SexyCache now?", "SexyCache", MB_YESNO) == IDYES &&
-	//	WinExec("SexyCache.exe", SW_MINIMIZE) >= 32)
-	//{
-	//	gSexyCache = SexyCache();
-	//}
-	//if (gSexyCache->Connected() && !gLawnApp->mTodCheatKeys)
-	//{
-	//	gSexyCache->Disconnect();
-	//}
-
 	mSessionID = std::time(nullptr);
 	mPlayTimeActiveSession = 0;
 	mPlayTimeInactiveSession = 0;
@@ -1311,12 +1299,6 @@ void LawnApp::Init()
 #if SEXY_CRASH_HANDLER
 	gSEHCatcher.mSubmitHost = "https://github.com/LawnProject/ResoddedFramework";
 #endif
-
-	// Replace 'mod_name' with the name of the pak file you are going to add.
-
-	SexyString anExtensionPak = "mod_name.pak";
-	if (std::filesystem::exists(anExtensionPak))
-		gPakInterface->AddPakFile(anExtensionPak);
 
 	if (!mResourceManager->ParseResourcesFile("properties/resources.xml"))
 	{
@@ -1467,8 +1449,8 @@ bool LawnApp::UpdatePlayerProfileForFinishingLevel()
 	{
 		if (mBoard->mLevel == FINAL_LEVEL)
 		{
-			mPlayerInfo->SetLevel(1);		   // 存档回到第 1-1 关
-			mPlayerInfo->mFinishedAdventure++; // 完成冒险模式周目数增加 1 次
+			mPlayerInfo->SetLevel(1);
+			mPlayerInfo->mFinishedAdventure++;
 			mAchievements->GiveAchievement(AchievementID::ACHIEVEMENT_HOME_SECURITY);
 			if (mPlayerInfo->mFinishedAdventure == 1)
 			{
@@ -1477,7 +1459,7 @@ bool LawnApp::UpdatePlayerProfileForFinishingLevel()
 		}
 		else
 		{
-			mPlayerInfo->SetLevel(mBoard->mLevel + 1); // 存档进入下一关
+			mPlayerInfo->SetLevel(mBoard->mLevel + 1);
 		}
 
 		if (!HasFinishedAdventure() && mBoard->mLevel == 34)
@@ -1979,7 +1961,7 @@ void LawnApp::ButtonPress(int theId)
 void LawnApp::ButtonDepress(int theId)
 {
 	if (theId % 10000 >= 2000 &&
-		theId % 10000 < 3000) // 按钮编号 theId ∈ [2000, 3000) 时，表示按下 theId - 2000 编号的对话中的“是”按钮
+		theId % 10000 < 3000)
 	{
 		switch (theId - 2000)
 		{
@@ -2091,7 +2073,7 @@ void LawnApp::ButtonDepress(int theId)
 	}
 
 	if (theId % 10000 >= 3000 &&
-		theId < 4000) // 按钮编号 theId ∈ [3000, 4000) 时，表示按下 theId - 3000 编号的对话中的“否”按钮
+		theId < 4000)
 	{
 		switch (theId - 3000)
 		{
@@ -2432,14 +2414,14 @@ SeedType LawnApp::GetAwardSeedForLevel(int theLevel)
 {
 	int aArea = (theLevel - 1) / LEVELS_PER_AREA + 1;
 	int aSub = (theLevel - 1) % LEVELS_PER_AREA + 1;
-	int aSeedsHasGot = (aArea - 1) * 8 + aSub; // 一般来说，每大关可以获得 8 种植物，每小关可以获得 1 种植物
+	int aSeedsHasGot = (aArea - 1) * 8 + aSub;
 	if (aSub >= 10)
 	{
-		aSeedsHasGot -= 2; // 到达第 10 小关时，本大关中有 2 小关的奖励不是新植物
+		aSeedsHasGot -= 2;
 	}
 	else if (aSub >= 5)
 	{
-		aSeedsHasGot -= 1; // 到达第 5 小关时，本大关中有 1 小关的奖励不是新植物
+		aSeedsHasGot -= 1;
 	}
 	if (aSeedsHasGot > 40)
 	{
@@ -3479,6 +3461,9 @@ void LawnApp::SwitchScreenMode(bool wantWindowed, bool is3d, bool force)
 }
 
 /* #################################################################################################### */
+
+// Unimplemented features from beta versions of PvZ
+// Used the PopCap BetaSupport server. Useless for modders
 
 void LawnApp::BetaSubmit(bool theAskForComments)
 {

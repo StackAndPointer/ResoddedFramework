@@ -400,9 +400,7 @@ void ChallengeScreen::DrawButton(Graphics *g, int theChallengeIndex)
 
 		if (AccomplishmentsNeeded(theChallengeIndex) <= 1)
 		{
-			// ============================================================================================
-			// ▲ 绘制按钮上的小游戏图标
-			// ============================================================================================
+
 			if (aChallengeButton->mDisabled)
 			{
 				g->SetColor(Color(92, 92, 92));
@@ -431,18 +429,12 @@ void ChallengeScreen::DrawButton(Graphics *g, int theChallengeIndex)
 				g->DrawImageCel(Sexy::IMAGE_CHALLENGE_THUMBNAILS, aPosX + 13, aPosY + 4, aDef.mChallengeIconIndex);
 			}
 
-			// ============================================================================================
-			// ▲ 绘制小游戏按钮边框
-			// ============================================================================================
 			bool aHighLight = aChallengeButton->mIsOver && theChallengeIndex != mUnlockChallengeIndex;
 			g->SetColorizeImages(false);
 			g->DrawImage(aHighLight ? Sexy::IMAGE_CHALLENGE_WINDOW_HIGHLIGHT : Sexy::IMAGE_CHALLENGE_WINDOW,
 						 aPosX - 6,
 						 aPosY - 2);
 
-			// ============================================================================================
-			// ▲ 绘制小游戏的名称
-			// ============================================================================================
 			Color aTextColor = aHighLight ? Color(250, 40, 40) : Color(42, 42, 90);
 			SexyString aName = TodStringTranslate(aDef.mChallengeName);
 			if (aChallengeButton->mDisabled ||
@@ -458,7 +450,6 @@ void ChallengeScreen::DrawButton(Graphics *g, int theChallengeIndex)
 			}
 			else
 			{
-				// 先尝试在名称字符串的后半段取空格以将字符串分隔为两行，若后半段中无空格则在整个字符串中寻找空格
 				int aHalfPos =
 					(mPageIndex == CHALLENGE_PAGE_SURVIVAL && !aChallengeButton->mDisabled) ? 7 : (aNameLen / 2 - 1);
 				size_t aSpacePos = aName.find(' ', aHalfPos);
@@ -492,9 +483,6 @@ void ChallengeScreen::DrawButton(Graphics *g, int theChallengeIndex)
 				}
 			}
 
-			// ============================================================================================
-			// ▲ 绘制关卡锁定或关卡完成的贴图以及关卡最高记录的文本等
-			// ============================================================================================
 			int aRecord = mApp->mPlayerInfo->mChallengeRecords[theChallengeIndex];
 			if (theChallengeIndex == mUnlockChallengeIndex)
 			{
@@ -739,8 +727,8 @@ void ChallengeScreen::UpdateToolTip()
 				mToolTip->SetLabel(aLabel);
 				mToolTip->mVisible = true;
 				return;
-			} // end if (MoreTrophiesNeeded(aChallengeMode) > 0)
-		} // end 需要显示标签的条件判断
+			}
+		}
 	}
 
 	mToolTip->mVisible = false;

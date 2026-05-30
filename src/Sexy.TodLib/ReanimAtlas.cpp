@@ -88,10 +88,8 @@ int ReanimAtlas::PickAtlasWidth()
 			aMaxWidth = aImage->mWidth + 2;
 	}
 
-	int aWidth = FloatRoundToInt(sqrt(totalArea)); // 假定为正方向区域时，正方向的边长
-	return GetClosestPowerOf2Above(
-		std::min(std::max(aWidth, aMaxWidth),
-			2048)); // 取“边长”和“最宽贴图的宽度”的较大值（且不超过 2048），并向上取至 2 的整数次幂
+	int aWidth = FloatRoundToInt(sqrt(totalArea));
+	return GetClosestPowerOf2Above(std::min(std::max(aWidth, aMaxWidth), 2048));
 }
 
 //0x470420
@@ -100,13 +98,10 @@ bool ReanimAtlas::ImageFits(int theImageCount, const Rect &rectTest, int theMaxW
 	if (rectTest.mX + rectTest.mWidth > theMaxWidth)
 		return false;
 
-	for (int i = 0; i < theImageCount;
-		 i++) // 遍历贴图数组的前 theImageCount 个贴图，判断给定矩形是否与某贴图占用的区域有冲突
+	for (int i = 0; i < theImageCount; i++)
 	{
 		ReanimAtlasImage *aImage = &mImageArray[i];
-		if (Rect(aImage->mX, aImage->mY, aImage->mWidth, aImage->mHeight)
-				.Inflate(1, 1)
-				.Intersects(rectTest)) // 贴图占用区域为自身区域及向外延伸 1 像素
+		if (Rect(aImage->mX, aImage->mY, aImage->mWidth, aImage->mHeight).Inflate(1, 1).Intersects(rectTest))
 			return false;
 	}
 	return true;
@@ -125,18 +120,18 @@ bool ReanimAtlas::ImageFindPlaceOnSide(ReanimAtlasImage *theAtlasImageToPlace,
 	for (int i = 0; i < theImageCount; i++)
 	{
 		ReanimAtlasImage *aImage = &mImageArray[i];
-		if (theToRight) // 如果规定了居右
+		if (theToRight)
 		{
 			rectTest.mX = aImage->mX + aImage->mWidth + 1;
 			rectTest.mY = aImage->mY;
 		}
-		else // 否则居于下方
+		else 
 		{
 			rectTest.mX = aImage->mX;
 			rectTest.mY = aImage->mY + aImage->mHeight + 1;
 		}
 
-		if (ImageFits(theImageCount, rectTest, theMaxWidth)) // 如果图片能够放得下
+		if (ImageFits(theImageCount, rectTest, theMaxWidth))
 		{
 			theAtlasImageToPlace->mX = rectTest.mX;
 			theAtlasImageToPlace->mY = rectTest.mY;
@@ -155,8 +150,7 @@ bool ReanimAtlas::ImageFindPlaceOnSide(ReanimAtlasImage *theAtlasImageToPlace,
 bool ReanimAtlas::ImageFindPlace(ReanimAtlasImage *theAtlasImageToPlace, int theImageCount, int theMaxWidth)
 {
 	return ImageFindPlaceOnSide(theAtlasImageToPlace, theImageCount, theMaxWidth, true) ||
-		   ImageFindPlaceOnSide(
-			   theAtlasImageToPlace, theImageCount, theMaxWidth, false); // 分别尝试在居右和居下的位置放置图片
+		   ImageFindPlaceOnSide(theAtlasImageToPlace, theImageCount, theMaxWidth, false);
 }
 
 bool ReanimAtlas::PlaceAtlasImage(ReanimAtlasImage *theAtlasImageToPlace, int theImageCount, int theMaxWidth)
@@ -186,11 +180,6 @@ void ReanimAtlas::ArrangeImages(int &theAtlasWidth, int &theAtlasHeight)
 	{
 		ReanimAtlasImage *aImage = &mImageArray[i];
 		PlaceAtlasImage(aImage, i, theAtlasWidth);
-
-		/* 
-			此处原为“theAtlasHeight = max(GetClosestPowerOf2Above(aImage->mY + aImage->mHeight), theAtlasHeight);”
-			这样在 max 宏展开时，会导致 GetClosestPowerOf2Above(aImage->mY + aImage->mHeight) 被重复计算，故稍作修改
-		*/
 
 		int aImageHeight = GetClosestPowerOf2Above(aImage->mY + aImage->mHeight);
 		theAtlasHeight = std::max(aImageHeight, theAtlasHeight);
@@ -228,12 +217,11 @@ void ReanimAtlas::ReanimAtlasCreate(ReanimatorDefinition *theReanimDef)
 	for (int aTrackIndex = 0; aTrackIndex < theReanimDef->mTrackCount; aTrackIndex++)
 	{
 		ReanimatorTrack *aTrack = &theReanimDef->mTracks[aTrackIndex];
-		for (int aKeyIndex = 0; aKeyIndex < aTrack->mTransformCount; aKeyIndex++) // 遍历每一帧上的贴图
+		for (int aKeyIndex = 0; aKeyIndex < aTrack->mTransformCount; aKeyIndex++)
 		{
 			Image *aImage = aTrack->mTransforms[aKeyIndex].mImage;
-			// 如果存在贴图，且贴图的宽、高均不大于 254 像素，且相同的贴图未加入至图集图片数组中
 			if (aImage != nullptr && aImage->mWidth <= 254 && aImage->mHeight <= 254 && FindImage(aImage) < 0)
-				AddImage(aImage); // 先将其加入数组中，后续再确定其位于图集中的位置
+				AddImage(aImage);
 		}
 	}
 
@@ -243,14 +231,14 @@ void ReanimAtlas::ReanimAtlasCreate(ReanimatorDefinition *theReanimDef)
 	for (int aTrackIndex = 0; aTrackIndex < theReanimDef->mTrackCount; aTrackIndex++)
 	{
 		ReanimatorTrack *aTrack = &theReanimDef->mTracks[aTrackIndex];
-		for (int aKeyIndex = 0; aKeyIndex < aTrack->mTransformCount; aKeyIndex++) // 遍历每一帧上的贴图
+		for (int aKeyIndex = 0; aKeyIndex < aTrack->mTransformCount; aKeyIndex++)
 		{
 			Image *&aImage = aTrack->mTransforms[aKeyIndex].mImage;
 			if (aImage != nullptr && aImage->mWidth <= 254 && aImage->mHeight <= 254)
 			{
 				int aImageIndex = FindImage(aImage);
 				TOD_ASSERT(aImageIndex >= 0);
-				aImage = (Image *)(aImageIndex + 1); // ★ 将图片在数组中的序号作为 Image* 修改动画定义
+				aImage = (Image *)(aImageIndex + 1);
 			}
 		}
 	}
@@ -260,7 +248,7 @@ void ReanimAtlas::ReanimAtlasCreate(ReanimatorDefinition *theReanimDef)
 	for (int aImageIndex = 0; aImageIndex < mImageCount; aImageIndex++)
 	{
 		ReanimAtlasImage *aImage = &mImageArray[aImageIndex];
-		aMemoryGraphis.DrawImage(aImage->mOriginalImage, aImage->mX, aImage->mY); // 将原贴图绘制在图集上
+		aMemoryGraphis.DrawImage(aImage->mOriginalImage, aImage->mX, aImage->mY);
 	}
-	FixPixelsOnAlphaEdgeForBlending(mMemoryImage); // 将所有透明像素的颜色修正为其周围像素颜色的平均值
+	FixPixelsOnAlphaEdgeForBlending(mMemoryImage);
 }

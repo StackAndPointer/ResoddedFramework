@@ -187,17 +187,15 @@ void MessageWidget::LayoutReanimText()
 	aCurLine = 0;
 	float aCurPosY = 0.0f;
 	float aCurPosX = -aLineWidth[0] * 0.5f;
-	// 以下遍历字幕中的所有文本，分别在适当的位置创建每一个文字的动画
 	for (int aPos = 0; aPos < aLabelLen; aPos++)
 	{
-		// 创建文字的动画
 		Reanimation *aReanimText = mApp->AddReanimation(aCurPosX, aCurPosY, 0, mReanimType);
 		aReanimText->mIsAttachment = true;
 		aReanimText->PlayReanim("anim_enter", ReanimLoopType::REANIM_PLAY_ONCE_AND_HOLD, 0.0f, 0.0f);
 		mTextReanimID[aPos] = mApp->ReanimationGetID(aReanimText);
 
-		aCurPosX += aFont->CharWidth(mLabel[aPos]); // 坐标调整至下一个文字的位置
-		if (mLabel[aPos] == '\n')				// 换行处理
+		aCurPosX += aFont->CharWidth(mLabel[aPos]);
+		if (mLabel[aPos] == '\n')
 		{
 			aCurLine++;
 			TOD_ASSERT(aCurLine < MAX_REANIM_LINES);
@@ -213,7 +211,6 @@ void MessageWidget::Update()
 	if (!mApp->mBoard || mApp->mBoard->mPaused)
 		return;
 
-	// 更新字幕的剩余时间倒计时和下一轮字幕的切换
 	if (mDuration < 10000 && mDuration > 0)
 	{
 		mDuration--;
@@ -229,16 +226,14 @@ void MessageWidget::Update()
 	}
 
 	int aLabelLen = strlen(mLabel);
-	// 以下遍历每个文字的动画，设置其动画速率并更新其动画
 	for (int aPos = 0; aPos < aLabelLen; aPos++)
 	{
 		Reanimation *aTextReanim = mApp->ReanimationTryToGet(mTextReanimID[aPos]);
 		if (aTextReanim == nullptr)
 		{
-			break; // 当不存在文本动画时，跳出循环，直接返回
+			break;
 		}
 
-		// 设置动画速率
 		int aTextSpeed = mReanimType == ReanimationType::REANIM_TEXT_FADE_ON ? 100 : 1;
 		if (mDuration > mSlideOffTime)
 		{
@@ -262,7 +257,7 @@ void MessageWidget::Update()
 				0, 50, (mSlideOffTime - mDuration) * aTextSpeed - aPos, 0.0f, 40.0f, TodCurves::CURVE_LINEAR);
 		}
 
-		aTextReanim->Update(); //更新动画
+		aTextReanim->Update();
 	}
 }
 
@@ -275,7 +270,7 @@ void MessageWidget::DrawReanimatedText(Graphics *g, Font *theFont, const Color &
 		Reanimation *aTextReanim = mApp->ReanimationTryToGet(mTextReanimID[aPos]);
 		if (aTextReanim == nullptr)
 		{
-			break; // 当不存在文本动画时，跳出循环，直接返回
+			break;
 		}
 
 		ReanimatorTransform aTransform;
@@ -284,7 +279,7 @@ void MessageWidget::DrawReanimatedText(Graphics *g, Font *theFont, const Color &
 		int anAlpha = ClampInt(FloatRoundToInt(theColor.mAlpha * aTransform.mAlpha), 0, 255);
 		if (anAlpha <= 0)
 		{
-			break; // 文本动画完全透明时，直接返回
+			break;
 		}
 		Color aFinalColor(theColor);
 		aFinalColor.mAlpha = anAlpha;

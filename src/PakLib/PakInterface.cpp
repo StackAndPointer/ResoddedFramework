@@ -301,15 +301,14 @@ size_t PakInterface::FRead(void *thePtr, int theElemSize, int theCount, PFILE *t
 		return fread(thePtr, theElemSize, theCount, theFile->mFP);
 	else if (theFile->mRecord != NULL)
 	{
-		// 实际读取的字节数不能超过当前资源文件剩余可读取的字节数
 		int aSizeBytes = std::min(1l * theElemSize * theCount, theFile->mRecord->mSize - theFile->mPos);
 
 		// 取得在整个 pak 中开始读取的位置的指针
 		uint8_t *src = theFile->mRecord->mCollection->mData.data() + theFile->mRecord->mStartPos + theFile->mPos;
 		uint8_t *dest = (uint8_t *)thePtr;
 		memcpy(thePtr, src, aSizeBytes);
-		theFile->mPos += aSizeBytes;	 // 读取完成后，移动当前读取位置的指针
-		return aSizeBytes / theElemSize; // 返回实际读取的项数
+		theFile->mPos += aSizeBytes;
+		return aSizeBytes / theElemSize;
 	}
 	return 0;
 }

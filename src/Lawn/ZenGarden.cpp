@@ -311,7 +311,7 @@ void ZenGarden::FindOpenZenGardenSpot(int &theSpotX, int &theSpotY)
 		{
 			if (mApp->mCrazyDaveMessageIndex != -1 && (x < 2 || y < 1))
 			{
-				continue; // 忽略被戴夫遮挡住的部分
+				continue;
 			}
 
 			for (int i = 0; i < mApp->mPlayerInfo->mNumPottedPlants; i++)
@@ -320,7 +320,7 @@ void ZenGarden::FindOpenZenGardenSpot(int &theSpotX, int &theSpotY)
 				if (aPottedPlant->mWhichZenGarden == GardenType::GARDEN_MAIN && aPottedPlant->mX == x &&
 					aPottedPlant->mY == y)
 				{
-					continue; // 格子内已有盆栽植物则不可选择
+					continue;
 				}
 			}
 

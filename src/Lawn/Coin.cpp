@@ -389,7 +389,6 @@ void Coin::CoinInitialize(int theX, int theY, CoinType theCoinType, CoinMotion t
 
 bool Coin::IsMoney(CoinType theType)
 {
-	// 这个函数原本是完全没有的，但是由于在 Board 中涉及到，并且感觉能在需要添加新钱币种类的时候提供方便，所以就留下来了
 	return theType == CoinType::COIN_SILVER || theType == CoinType::COIN_GOLD || theType == CoinType::COIN_DIAMOND;
 }
 
@@ -717,7 +716,7 @@ void Coin::UpdateCollected()
 			{
 				if (mType == CoinType::COIN_PRESENT_MINIGAMES)
 				{
-					// 注：此处的 theMessageStyle 参数，原版中为 MESSAGE_STYLE_HINT_TALL_UNLOCKMESSAGE，内测版中为 MESSAGE_STYLE_HINT_TALL_8SECONDS
+					
 					mBoard->DisplayAdvice("[UNLOCKED_MINIGAMES]",
 										  MessageStyle::MESSAGE_STYLE_HINT_TALL_UNLOCKMESSAGE,
 										  AdviceType::ADVICE_UNLOCKED_MODE);
@@ -793,7 +792,7 @@ void Coin::Update()
 		if ((!mHitGround || mIsBeingCollected) && (mType == CoinType::COIN_SILVER || mType == CoinType::COIN_GOLD))
 		{
 			AttachmentOverrideColor(mAttachmentID,
-									Color(0, 0, 0, 0)); // 运动中的金币和银币使用贴图，故以此法隐藏附件的动画
+									Color(0, 0, 0, 0));
 		}
 	}
 }

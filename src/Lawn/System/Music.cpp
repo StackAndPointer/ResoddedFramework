@@ -43,21 +43,21 @@ bool Music::TodLoadMusic(MusicFile theMusicFile, const std::string &theFileName)
 	std::string anExt;
 
 	int aDot = theFileName.rfind('.');
-	if (aDot != std::string::npos)							 // 文件名中不含“.”（文件无扩展名）
-		anExt = StringToLower(theFileName.substr(aDot + 1)); // 取得小写的文件扩展名
+	if (aDot != std::string::npos)
+		anExt = StringToLower(theFileName.substr(aDot + 1));
 
-	if (anExt.compare("wav") && anExt.compare("ogg") && anExt.compare("mp3")) // 如果不是这三种拓展名
+	if (anExt.compare("wav") && anExt.compare("ogg") && anExt.compare("mp3"))
 	{
 		PFILE *pFile = p_fopen(theFileName.c_str(), "rb");
 		if (pFile == nullptr)
 			return false;
 
-		p_fseek(pFile, 0, SEEK_END); // 指针调整至文件末尾
-		int aSize = p_ftell(pFile);	 // 当前位置即为文件长度
-		p_fseek(pFile, 0, SEEK_SET); // 指针调回文件开头
+		p_fseek(pFile, 0, SEEK_END);
+		int aSize = p_ftell(pFile);
+		p_fseek(pFile, 0, SEEK_SET);
 		void *aData = operator new[](aSize);
-		p_fread(aData, sizeof(char), aSize, pFile); // 按字节读取数据
-		p_fclose(pFile);							// 关闭文件流
+		p_fread(aData, sizeof(char), aSize, pFile);
+		p_fclose(pFile);
 
 		aHMusic = BASS_MusicLoad(BASS_FILE_MEM, aData, 0, aSize, aBass->mMusicLoadFlags, 0);
 		delete[] aData;
@@ -71,12 +71,12 @@ bool Music::TodLoadMusic(MusicFile theMusicFile, const std::string &theFileName)
 		if (pFile == nullptr)
 			return false;
 
-		p_fseek(pFile, 0, SEEK_END); // 指针调整至文件末尾
-		int aSize = p_ftell(pFile);	 // 当前位置即为文件长度
-		p_fseek(pFile, 0, SEEK_SET); // 指针调回文件开头
+		p_fseek(pFile, 0, SEEK_END);
+		int aSize = p_ftell(pFile);
+		p_fseek(pFile, 0, SEEK_SET);
 		void *aData = operator new[](aSize);
-		p_fread(aData, sizeof(char), aSize, pFile); // 按字节读取数据
-		p_fclose(pFile);							// 关闭文件流
+		p_fread(aData, sizeof(char), aSize, pFile);
+		p_fclose(pFile);
 
 		aStream = BASS_StreamCreateFile(BASS_FILE_MEM, aData, 0, aSize, 0);
 		TOD_ASSERT(gMusicFileData[theMusicFile].mFileData == nullptr);
@@ -90,7 +90,7 @@ bool Music::TodLoadMusic(MusicFile theMusicFile, const std::string &theFileName)
 	aMusicInfo.mHStream = aStream;
 	aMusicInfo.mHMusic = aHMusic;
 	aBass->mMusicMap.insert(
-		BassMusicMap::value_type(theMusicFile, aMusicInfo)); // 将目标音乐文件编号和音乐信息的对组加入音乐数据容器
+		BassMusicMap::value_type(theMusicFile, aMusicInfo));
 	return true;
 }
 
@@ -210,7 +210,7 @@ void Music::SetupMusicFileForTune(MusicFile theMusicFile, MusicTune theMusicTune
 		else
 			aVolume = 0;
 
-		BASS_ChannelSetAttribute(aHMusic, BASS_ATTRIB_MUSIC_VOL_CHAN + aTrack, aVolume); // 设置音乐每条轨道的音量属性（静音与否）
+		BASS_ChannelSetAttribute(aHMusic, BASS_ATTRIB_MUSIC_VOL_CHAN + aTrack, aVolume);
 	}
 }
 
@@ -224,7 +224,7 @@ void Music::LoadSong(MusicFile theMusicFile, const std::string &theFileName)
 	}
 	else
 	{
-		BASS_ChannelSetAttribute(GetBassMusicHandle(theMusicFile), BASS_ATTRIB_MUSIC_PSCALER, 4); // 设置音乐定位精确度属性
+		BASS_ChannelSetAttribute(GetBassMusicHandle(theMusicFile), BASS_ATTRIB_MUSIC_PSCALER, 4);
 		TodHesitationTrace("song '%s'", theFileName.c_str());
 	}
 }
@@ -262,7 +262,7 @@ void Music::MusicLoadCreditsSong()
 #ifndef _DEBUG
 	BassMusicInterface *aBass = (BassMusicInterface *)mMusicInterface;
 	if (aBass->mMusicMap.find((int)MusicFile::MUSIC_FILE_CREDITS_ZOMBIES_ON_YOUR_LAWN) ==
-		aBass->mMusicMap.end()) // 如果尚未加载
+		aBass->mMusicMap.end())
 		LoadSong(MusicFile::MUSIC_FILE_CREDITS_ZOMBIES_ON_YOUR_LAWN, "sounds/ZombiesOnYourLawn.ogg");
 #endif
 }
@@ -313,20 +313,20 @@ void Music::PlayFromOffset(MusicFile theMusicFile, int theOffset, double theVolu
 
 	if (aMusicInfo->mHStream)
 	{
-		bool aNoLoop = theMusicFile == MusicFile::MUSIC_FILE_CREDITS_ZOMBIES_ON_YOUR_LAWN; // MV 音乐不循环
+		bool aNoLoop = theMusicFile == MusicFile::MUSIC_FILE_CREDITS_ZOMBIES_ON_YOUR_LAWN;
 		mMusicInterface->PlayMusic(theMusicFile, theOffset, aNoLoop);
 	}
 	else
 	{
-		BASS_ChannelStop(aMusicInfo->mHMusic);		// 先停止正在播放的音乐
-		SetupMusicFileForTune(theMusicFile, mCurMusicTune); // 调整每条轨道的静音与否
+		BASS_ChannelStop(aMusicInfo->mHMusic);
+		SetupMusicFileForTune(theMusicFile, mCurMusicTune);
 		aMusicInfo->mStopOnFade = false;
 		aMusicInfo->mVolume = aMusicInfo->mVolumeCap * theVolume;
 		aMusicInfo->mVolumeAdd = 0.0;
-		BASS_ChannelSetAttribute(aMusicInfo->mHMusic, BASS_ATTRIB_VOL, aMusicInfo->mVolume * 100); // 调整音乐音量
+		BASS_ChannelSetAttribute(aMusicInfo->mHMusic, BASS_ATTRIB_VOL, aMusicInfo->mVolume * 100);
 		BASS_ChannelFlags(aMusicInfo->mHMusic, BASS_MUSIC_POSRESET | BASS_MUSIC_RAMP | BASS_MUSIC_LOOP, -1);
-		BASS_ChannelPlay(aMusicInfo->mHMusic, false);						 // 重新开始播放
-		BASS_ChannelSetPosition(aMusicInfo->mHMusic, theOffset, BASS_POS_MUSIC_ORDER); // 设置偏移位置
+		BASS_ChannelPlay(aMusicInfo->mHMusic, false);
+		BASS_ChannelSetPosition(aMusicInfo->mHMusic, theOffset, BASS_POS_MUSIC_ORDER);
 
 	}
 }
@@ -507,8 +507,8 @@ void Music::MusicResyncChannel(MusicFile theMusicFileToMatch, MusicFile theMusic
 {
 	unsigned int aPosToMatch = GetMusicOrder(theMusicFileToMatch);
 	unsigned int aPosToSync = GetMusicOrder(theMusicFileToSync);
-	int aDiff = (aPosToSync >> 16) - (aPosToMatch >> 16); // 待同步的音乐与目标音乐的乐曲序号之差
-	if (abs(aDiff) <= 128)								  // 当前进行的乐曲序号之差超过 128 时，开摆（
+	int aDiff = (aPosToSync >> 16) - (aPosToMatch >> 16);
+	if (abs(aDiff) <= 128)
 	{
 		HMUSIC aHMusic = GetBassMusicHandle(theMusicFileToSync);
 
@@ -522,7 +522,7 @@ void Music::MusicResyncChannel(MusicFile theMusicFileToMatch, MusicFile theMusic
 		else if (aDiff < 0)
 			aBPM -= 1;
 
-		BASS_ChannelSetAttribute(aHMusic, BASS_ATTRIB_MUSIC_BPM, aBPM); // 适当调整待同步音乐的速率以缩小差距
+		BASS_ChannelSetAttribute(aHMusic, BASS_ATTRIB_MUSIC_BPM, aBPM);
 	}
 }
 
@@ -980,8 +980,7 @@ void Music::GameMusicPause(bool thePause)
 
 int Music::GetNumLoadingTasks()
 {
-	//return 800 * 3;  // 内测版
-	return 3500 * 2; // 原版
+	return 3500 * 2; //800 in Beta
 }
 
 bool Music::IsTrackerMusic(MusicTune theMusicTune)

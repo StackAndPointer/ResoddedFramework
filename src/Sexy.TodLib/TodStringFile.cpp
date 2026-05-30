@@ -52,9 +52,9 @@ void TodStringListSetColors(TodStringListFormat *theFormats, int theCount)
 bool TodStringListReadName(const char *&thePtr, std::string &theName)
 {
 	const char *aNameStart = strchr(thePtr, '[');
-	if (aNameStart == nullptr) // 如果文本中不存在“[”
+	if (aNameStart == nullptr)
 	{
-		if (strspn(thePtr, " \n\r\t") != strlen(thePtr)) // 如果文本不全是空白字符
+		if (strspn(thePtr, " \n\r\t") != strlen(thePtr))
 		{
 			TodTrace("[TodLib] - Failed to find string name");
 			return false;
@@ -66,21 +66,21 @@ bool TodStringListReadName(const char *&thePtr, std::string &theName)
 	else
 	{
 		const char *aNameEnd = strchr(aNameStart + 1, ']');
-		if (aNameEnd == nullptr) // 如果“[”后不存在“]”
+		if (aNameEnd == nullptr)
 		{
 			TodTrace("[TodLib] - Failed to find ']'");
 			return false;
 		}
 
 		int aCount = aNameEnd - aNameStart - 1;
-		theName = Sexy::Trim(std::string(aNameStart + 1, aCount)); // 取得中括号之间的部分并去除字符串前后的空白字符
+		theName = Sexy::Trim(std::string(aNameStart + 1, aCount));
 		if (theName.size() == 0)
 		{
 			TodTrace("[TodLib] - Name Too Short");
 			return false;
 		}
 
-		thePtr += aCount + 2; // 移动读取指针至“]”后
+		thePtr += aCount + 2;
 		return true;
 	}
 }
@@ -91,7 +91,7 @@ void TodStringRemoveReturnChars(std::string &theString)
 	for (int i = 0; i < theString.size();)
 	{
 		if (theString[i] == '\r')
-			theString.replace(i, 1, "", 0); // 原版中此处的“1”和“""”已内联至函数内部
+			theString.replace(i, 1, "", 0);
 		else
 			i++;
 	}
@@ -102,9 +102,9 @@ bool TodStringListReadValue(const char *&thePtr, std::string &theValue)
 {
 	const char *aValueEnd = strchr(thePtr, '[');
 	int aLen = aValueEnd ? aValueEnd - thePtr : strlen(thePtr);
-	theValue = Sexy::Trim(std::string(thePtr, aLen)); // 如果存在下一个“[”，则取到“[”前为止；否则，取剩下的全部
-	TodStringRemoveReturnChars(theValue);		 // 移除所有的换行符
-	thePtr += aLen;								 // 移动读取指针至“[”处（或结尾处）
+	theValue = Sexy::Trim(std::string(thePtr, aLen));
+	TodStringRemoveReturnChars(theValue);
+	thePtr += aLen;	
 	return true;
 }
 
@@ -117,11 +117,11 @@ bool TodStringListReadItems(const char *theFileText)
 
 	for (;;)
 	{
-		if (!TodStringListReadName(aPtr, aName)) // 读取一个标签
+		if (!TodStringListReadName(aPtr, aName))
 			return false;
-		if (aName.size() == 0) // 读取成功但没有读取到标签，表明读取完成
+		if (aName.size() == 0)
 			return true;
-		if (!TodStringListReadValue(aPtr, aValue)) // 读取对应的内容
+		if (!TodStringListReadValue(aPtr, aValue))
 			return false;
 
 		std::string aNameUpper = Sexy::StringToUpper(aName);
@@ -139,12 +139,12 @@ bool TodStringListReadFile(const char *theFileName)
 		return false;
 	}
 
-	p_fseek(pFile, 0, SEEK_END); // 指针调整至文件末尾
-	int aSize = p_ftell(pFile);	 // 当前位置即为文件长度
-	p_fseek(pFile, 0, SEEK_SET); // 指针调回文件开头
+	p_fseek(pFile, 0, SEEK_END);
+	int aSize = p_ftell(pFile);	
+	p_fseek(pFile, 0, SEEK_SET);
 	char *aFileText = new char[aSize + 1];
 	bool aSuccess = true;
-	if (p_fread(aFileText, sizeof(char), aSize, pFile) <= 0) // 按字节读取数据
+	if (p_fread(aFileText, sizeof(char), aSize, pFile) <= 0)
 	{
 		TodTrace("[TodLib] - Failed to read '%s'", theFileName);
 		aSuccess = false;
@@ -155,7 +155,7 @@ bool TodStringListReadFile(const char *theFileName)
 	{
 		aSuccess = TodStringListReadItems(aFixedContent.c_str());
 	}
-	p_fclose(pFile); // 关闭文件流
+	p_fclose(pFile);
 	delete[] aFileText;
 
 	return aSuccess;
@@ -188,7 +188,7 @@ SexyString TodStringTranslate(const SexyString &theString)
 {
 	if (theString.size() >= 3 && theString[0] == '[')
 	{
-		SexyString aName = theString.substr(1, theString.size() - 2); // 取“[”与“]”中间的部分
+		SexyString aName = theString.substr(1, theString.size() - 2); 
 		return TodStringListFind(aName);
 	}
 	return theString;
@@ -217,7 +217,7 @@ bool TodStringListExists(const SexyString &theString)
 {
 	if (theString.size() >= 3 && theString[0] == '[')
 	{
-		SexyString aName = theString.substr(1, theString.size() - 2); // 取“[”与“]”中间的部分
+		SexyString aName = theString.substr(1, theString.size() - 2);
 		return gSexyAppBase->mStringProperties.find(aName) != gSexyAppBase->mStringProperties.end();
 	}
 	return false;
@@ -360,9 +360,9 @@ int TodWriteWordWrappedHelper(Graphics *g,
 							  int theLength,
 							  int theMaxChars)
 {
-	if (theOffset + theLength > theMaxChars) // 如果指定子串超出了字符串的最大长度
+	if (theOffset + theLength > theMaxChars)
 	{
-		theLength = theMaxChars - theOffset; // 修正子串长度
+		theLength = theMaxChars - theOffset;
 		if (theLength <= 0)
 			return -1;
 	}
@@ -543,7 +543,7 @@ void TodDrawStringWrapped(Graphics *g,
 	Rect aRectTodUse = theRect;
 	if (theJustification == DrawStringJustification::DS_ALIGN_LEFT_VERTICAL_MIDDLE ||
 		theJustification == DrawStringJustification::DS_ALIGN_RIGHT_VERTICAL_MIDDLE ||
-		theJustification == DrawStringJustification::DS_ALIGN_CENTER_VERTICAL_MIDDLE) // 如果纵向需要居中
+		theJustification == DrawStringJustification::DS_ALIGN_CENTER_VERTICAL_MIDDLE)
 	{
 		aRectTodUse.mY +=
 			(aRectTodUse.mHeight -

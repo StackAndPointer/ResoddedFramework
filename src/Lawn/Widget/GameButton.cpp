@@ -152,7 +152,7 @@ void GameButton::Draw(Graphics *g)
 			DrawButtonImage(g, mDisabledImage, mDisabledRect, 0, 0);
 		else if (mOverAlpha > 0.0f && HaveButtonImage(mOverImage, mOverRect))
 		{
-			if (HaveButtonImage(mButtonImage, mNormalRect) && mOverAlpha < 1.0f) // 未完全过渡结束
+			if (HaveButtonImage(mButtonImage, mNormalRect) && mOverAlpha < 1.0f)
 				DrawButtonImage(g, mButtonImage, mNormalRect, 0, 0);
 
 			g->SetColorizeImages(true);
@@ -347,7 +347,7 @@ void NewLawnButton::Draw(Graphics *g)
 			DrawButtonImage(g, mDisabledImage, mDisabledRect, mButtonOffsetX, mButtonOffsetY);
 		else if (mOverAlpha > 0.0f && HaveButtonImage(mOverImage, mOverRect))
 		{
-			if (HaveButtonImage(mButtonImage, mNormalRect) && mOverAlpha < 1.0f) // 未完全过渡结束
+			if (HaveButtonImage(mButtonImage, mNormalRect) && mOverAlpha < 1.0f)
 				DrawButtonImage(g, mButtonImage, mNormalRect, mButtonOffsetX, mButtonOffsetY);
 
 			g->mColor.mAlpha = mOverAlpha * 255;

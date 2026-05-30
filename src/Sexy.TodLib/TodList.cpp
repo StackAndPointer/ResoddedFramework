@@ -43,7 +43,7 @@ void TodAllocator::Grow()
 
 bool TodAllocator::IsPointerFromAllocator(void *theItem)
 {
-	size_t aBlockSize = mGrowCount * mItemSize; // 每次“Grow”的内存大小，即每个区块的内存大小
+	size_t aBlockSize = mGrowCount * mItemSize;
 	for (void *aPtr = mBlockList; aPtr != nullptr; aPtr = *(void **)aPtr)
 	{
 		uintptr_t aItemPtr = (uintptr_t)theItem;
@@ -85,8 +85,8 @@ void TodAllocator::Free(void *theItem, int theItemSize)
 	mTotalItems--;
 	TOD_ASSERT(IsPointerFromAllocator(theItem));
 	TOD_ASSERT(!IsPointerOnFreeList(theItem));
-	*(void **)theItem = mFreeList; // 将原可用区域头存入 [*theItem] 中
-	mFreeList = theItem;		   // 将 theItem 设为新的可用区域头
+	*(void **)theItem = mFreeList;
+	mFreeList = theItem;
 }
 
 void TodAllocator::FreeAll()

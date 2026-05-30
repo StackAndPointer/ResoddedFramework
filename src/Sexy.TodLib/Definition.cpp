@@ -409,10 +409,11 @@ bool DefReadFromCacheVector2(void *&theReadPtr, SexyVector2 *theVector)
 
 bool DefReadFromCacheImage(void *&theReadPtr, Image **theImage)
 {
+	//Read the length of the string and then read the string based on that length
 	int aLen;
-	SMemR(theReadPtr, &aLen, sizeof(int));		  // 读取贴图标签字符数组的长度
-	char *aImageName = (char *)malloc(aLen + 1); // 在栈上分配贴图标签字符数组的内存空间
-	SMemR(theReadPtr, aImageName, aLen);		  // 读取贴图标签字符数组
+	SMemR(theReadPtr, &aLen, sizeof(int));
+	char *aImageName = (char *)malloc(aLen + 1);
+	SMemR(theReadPtr, aImageName, aLen);
 	aImageName[aLen] = '\0';
 
 	*theImage = nullptr;
@@ -423,10 +424,11 @@ bool DefReadFromCacheImage(void *&theReadPtr, Image **theImage)
 
 bool DefReadFromCacheFont(void *&theReadPtr, Font **theFont)
 {
+	//Read the length of the string and then read the string based on that length
 	int aLen;
-	SMemR(theReadPtr, &aLen, sizeof(int));		 // 读取字体标签字符数组的长度
-	char *aFontName = (char *)malloc(aLen + 1); // 在栈上分配字体标签字符数组的内存空间
-	SMemR(theReadPtr, aFontName, aLen);			 // 读取字体标签字符数组
+	SMemR(theReadPtr, &aLen, sizeof(int));
+	char *aFontName = (char *)malloc(aLen + 1);
+	SMemR(theReadPtr, aFontName, aLen);
 	aFontName[aLen] = '\0';
 
 	*theFont = nullptr;
@@ -434,12 +436,11 @@ bool DefReadFromCacheFont(void *&theReadPtr, Font **theFont)
 }
 
 bool DefMapReadFromCache(void *&theReadPtr, DefMap *theDefMap, void *theDefinition)
-{
-	// 分别确认每一个成员变量，并修复其中的指针类型和标志类型的变量
+{ 
 	for (DefField *aField = theDefMap->mMapFields; *aField->mFieldName != '\0'; aField++)
 	{
 		bool aSucceed = true;
-		void *aDest = (void *)((uintptr_t)theDefinition + aField->mFieldOffset); // 指向该成员变量的指针
+		void *aDest = (void *)((uintptr_t)theDefinition + aField->mFieldOffset);
 		switch (aField->mFieldType)
 		{
 		case DefFieldType::DT_ENUM:
@@ -531,7 +532,7 @@ void *DefinitionUncompressCompiledBuffer(const CompiledDefinitionHeader *aHeader
 	
 	if (theCompressedBufferSize < 8)
 	{
-		TodTrace("[TodLib] - Compile def too small", theCompiledFilePath.c_str());
+		TodTraceAndLog("[TodLib] - Compile def too small", theCompiledFilePath.c_str());
 		return nullptr;
 	}
 
@@ -563,7 +564,7 @@ bool DefinitionReadCompiledFile(const SexyString &theCompiledFilePath, DefMap *t
 		fclose(pFile);
 		if (aReadCompressedFailed)
 		{
-			TodTrace("[TodLib] - Failed to read compiled file: %s\n", theCompiledFilePath.c_str());
+			TodTraceAndLog("[TodLib] - Failed to read compiled file: %s\n", theCompiledFilePath.c_str());
 			return false;
 		}
 
@@ -572,7 +573,7 @@ bool DefinitionReadCompiledFile(const SexyString &theCompiledFilePath, DefMap *t
 			const CompiledDefinitionHeader *aHeader = aCompiledFile.GetHeader();
 			if (aHeader->mDataOffset > aFileSize)
 			{
-				TodTrace("[TodLib] - Data Offset is larger then file size: %s\n", theCompiledFilePath.c_str());
+				TodTraceAndLog("[TodLib] - Data Offset is larger then file size: %s\n", theCompiledFilePath.c_str());
 				return false;
 			}
 			size_t aCompressedSize = aFileSize - aHeader->mDataOffset;
@@ -583,7 +584,7 @@ bool DefinitionReadCompiledFile(const SexyString &theCompiledFilePath, DefMap *t
 
 			if (anUncompressedData == nullptr)
 			{
-				TodTrace("[TodLib] - Failed to uncompress: %s\n", theCompiledFilePath.c_str());
+				TodTraceAndLog("[TodLib] - Failed to uncompress: %s\n", theCompiledFilePath.c_str());
 				return false;
 			}
 
@@ -594,7 +595,13 @@ bool DefinitionReadCompiledFile(const SexyString &theCompiledFilePath, DefMap *t
 		else
 		{
 #if SEXY_IS_X86
-			return LegacyDefinition::DefinitionReadCompiledFile(theCompiledFilePath, theDefMap, theDefinition);
+			bool aResult = LegacyDefinition::DefinitionReadCompiledFile(theCompiledFilePath, theDefMap, theDefinition);
+			if (aResult)  //If it's an x86 machine, and we find original definitions, load them, then convert to the format we use currently
+			{
+				TodTraceAndLog("[TodLib] - Converting a Legacy Compiled Definition: \"%s\" to the New Format\n", theCompiledFilePath.c_str());
+				DefinitionWriteCompiledFile(theCompiledFilePath, theDefMap, theDefinition);
+			}
+			return aResult;
 #else
 			return false;
 #endif
@@ -1300,7 +1307,7 @@ bool DefinitionWriteCompiledFile(const SexyString &theCompiledFilePath, DefMap *
 
 	if (res != Z_OK)
 	{
-		TodTrace("[TodLib] - Failed to compress file: %s\nZLib Error: %d", theCompiledFilePath.c_str(), res);
+		TodTraceAndLog("[TodLib] - Failed to compress file: %s\nZLib Error: %d", theCompiledFilePath.c_str(), res);
 		DefinitionFree(aCompressedData);
 		return false;
 	}
@@ -1322,7 +1329,7 @@ bool DefinitionCompileFile(const SexyString theXMLFilePath,
 	XMLParser aXMLParser;
 	if (!aXMLParser.OpenFile(theXMLFilePath))
 	{
-		TodTrace("[TodLib] - XML file not found: %s\n", theXMLFilePath.c_str());
+		TodTraceAndLog("[TodLib] - XML file not found: %s\n", theXMLFilePath.c_str());
 		return false;
 	}
 	else if (!DefinitionLoadMap(&aXMLParser, theDefMap, theDefinition))
@@ -1350,7 +1357,7 @@ bool DefinitionCompileAndLoad(const SexyString &theXMLFilePath, DefMap *theDefMa
 	PerfTimer aTimer;
 	aTimer.Start();
 	bool aResult = DefinitionCompileFile(theXMLFilePath, "fresh_" + aCompiledFilePath, theDefMap, theDefinition); //write to fresh_compiled to not overwrite on game re-compile by accident
-	TodTrace("[TodLib] - compile %d ms:'%s'", (int)aTimer.GetDuration(), aCompiledFilePath.c_str());
+	TodTraceAndLog("[TodLib] - compile %d ms:'%s'", (int)aTimer.GetDuration(), aCompiledFilePath.c_str());
 	TodHesitationTrace("compiled %s", aCompiledFilePath.c_str());
 	if (aResult)
 		return aResult;

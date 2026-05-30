@@ -1523,7 +1523,7 @@ Zombie *Plant::FindSquashTarget()
 					if (aZombie->IsWalkingBackwards() || aZombieRect.mX + aZombieRect.mWidth >= aPlantX)
 					{
 						if (mBoard->ZombieGetID(aZombie) == mTargetZombieID)
-							return aZombie; // 是锁定的目标僵尸，则直接返回该僵尸
+							return aZombie;
 
 						if (aClosestZombie == nullptr || aRange < aClosestRange)
 						{
@@ -4475,7 +4475,6 @@ void Plant::BurnRow(int theRow)
 	Zombie *aBossZombie = mBoard->GetBossZombie();
 	if (aBossZombie && aBossZombie->mFireballRow == theRow)
 	{
-		// 注：原版中将 Zombie::BossDestroyIceballInRow(int) 函数改为了 Zombie::BossDestroyIceball()，冰球是否位于目标行的判断则移动至此处进行
 		aBossZombie->BossDestroyIceballInRow(theRow);
 	}
 }
@@ -5089,7 +5088,7 @@ Zombie *Plant::FindTargetZombie(int theRow, PlantWeapon thePlantWeapon)
 				if (aZombie->mZombieType == ZombieType::ZOMBIE_POLEVAULTER)
 				{
 					aAttackRect.mX += 40;
-					aAttackRect.mWidth -= 40; // 原版经典土豆地雷 Bug 及“四撑杆引雷”的原理
+					aAttackRect.mWidth -= 40;
 				}
 
 				if (aZombie->mZombieType == ZombieType::ZOMBIE_BUNGEE && aZombie->mTargetCol != mPlantCol)
@@ -5127,7 +5126,7 @@ Zombie *Plant::FindTargetZombie(int theRow, PlantWeapon thePlantWeapon)
 									  aZombieRect.mY + aZombieRect.mHeight / 2);
 				if (aZombie->IsFlying())
 				{
-					aWeight += 10000; // 优先攻击飞行单位
+					aWeight += 10000;
 				}
 			}
 

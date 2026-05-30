@@ -144,8 +144,6 @@ StoreScreen::~StoreScreen()
 //0x48A760
 StoreItem StoreScreen::GetStoreItemType(int theSpotIndex)
 {
-	// 这个函数原版是穷举判断的，这里优化一下……
-
 	if (mPage < NUM_STORE_PAGES && theSpotIndex < MAX_PAGE_SPOTS)
 	{
 		if (mPage == STORE_PAGE_SLOT_UPGRADES && theSpotIndex == 6 && mApp->IsTrialStageLocked())
@@ -719,7 +717,6 @@ void StoreScreen::Update()
 	mApp->mMusic->MakeSureMusicIsPlaying(MUSIC_TUNE_TITLE_CRAZY_DAVE_MAIN_THEME);
 	mApp->UpdateCrazyDave();
 
-	// 更新 DataArray<Coin> 中的所有 Coin
 	Coin *aCoin = nullptr;
 	while (mCoins.IterateNext(aCoin))
 	{
@@ -870,7 +867,6 @@ void StoreScreen::Update()
 	}
 
 	UpdateMouse();
-	// 如果进入商店时为试玩版，而当前为完整版，且可以与按钮进行交互，则可以判断玩家已购买完整版
 	if (CanInteractWithButtons() && mTrialLockedWhenStoreOpened && !mApp->IsTrialStageLocked())
 	{
 		mPurchasedFullVersion = true;
@@ -914,19 +910,14 @@ void StoreScreen::ButtonPress(int theId)
 //0x48C440
 bool StoreScreen::IsPageShown(StorePages thePage)
 {
-	// 试玩模式下，仅显示默认页
 	if (mApp->IsTrialStageLocked())
 		return thePage == STORE_PAGE_SLOT_UPGRADES;
-	// 一周目完成后，所有页全解锁
 	if (mApp->HasFinishedAdventure())
 		return true;
-	// 到达或已通过冒险模式 5-2 关卡时，显示紫卡页
 	if (thePage == STORE_PAGE_PLANT_UPGRADES)
 		return mApp->mPlayerInfo->mLevel >= 42;
-	// 到达或已通过冒险模式 5-5 关卡时，显示花园工具页
 	if (thePage == STORE_PAGE_ZEN1)
 		return mApp->mPlayerInfo->mLevel >= 45;
-	// 冒险模式未完成时，不显示智慧树工具页
 	return thePage != STORE_PAGE_ZEN2;
 }
 
@@ -1208,7 +1199,6 @@ void StoreScreen::AdvanceCrazyDaveDialog()
 	if (!mBubbleClickToContinue)
 		return;
 
-	// “嘿，我的邻居！我有一些新东西出售啦！”
 	if (mApp->mCrazyDaveMessageIndex == 3100)
 	{
 		mHatchTimer = 150;

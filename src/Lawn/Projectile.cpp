@@ -78,13 +78,13 @@ void Projectile::ProjectileInitialize(
 
 	if (mProjectileType == ProjectileType::PROJECTILE_CABBAGE || mProjectileType == ProjectileType::PROJECTILE_BUTTER)
 	{
-		mRotation = -7 * PI / 25; // DEG_TO_RAD(-50.4f);
+		mRotation = DEG_TO_RAD(-50.4f);
 		mRotationSpeed = RandRangeFloat(-0.08f, -0.02f);
 	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_MELON ||
 			 mProjectileType == ProjectileType::PROJECTILE_WINTERMELON)
 	{
-		mRotation = -2 * PI / 5; // DEG_TO_RAD(-72.0f);
+		mRotation = DEG_TO_RAD(-72.0f);
 		mRotationSpeed = RandRangeFloat(-0.08f, -0.02f);
 	}
 	else if (mProjectileType == ProjectileType::PROJECTILE_KERNEL)
@@ -150,7 +150,7 @@ Plant *Projectile::FindCollisionTargetPlant()
 			if (aPlant->mSeedType == SeedType::SEED_PUFFSHROOM || aPlant->mSeedType == SeedType::SEED_SUNSHROOM ||
 				aPlant->mSeedType == SeedType::SEED_POTATOMINE || aPlant->mSeedType == SeedType::SEED_SPIKEWEED ||
 				aPlant->mSeedType == SeedType::SEED_SPIKEROCK ||
-				aPlant->mSeedType == SeedType::SEED_LILYPAD) // 僵尸豌豆不能击中低矮植物
+				aPlant->mSeedType == SeedType::SEED_LILYPAD)
 				continue;
 		}
 
@@ -203,7 +203,7 @@ bool Projectile::PeaAboutToHitTorchwood()
 //0x46CD40
 Zombie *Projectile::FindCollisionTarget()
 {
-	if (PeaAboutToHitTorchwood()) // “卡火炬”的原理，这段代码在两版内测版中均不存在
+	if (PeaAboutToHitTorchwood())
 		return nullptr;
 
 	Rect aProjectileRect = GetProjectileRect();

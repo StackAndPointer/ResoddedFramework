@@ -246,13 +246,12 @@ float TodCalcSmoothWeight(float aWeight, float aLastPicked, float aSecondLastPic
 		return 0.0f;
 	}
 
-	float aExpectedLength1 = 1.0f / aWeight;						// theLastPicked 的期望值
-	float aExpectedLength2 = aExpectedLength1 * 2.0f;				// theSecondLastPicked 的期望值
-	float aAdvancedLength1 = aLastPicked + 1.0f - aExpectedLength1; // 相较于 theLastPicked 的期望值，提前的轮数
-	float aAdvancedLength2 =
-		aSecondLastPicked + 1.0f - aExpectedLength2; // 相较于 theSecondLastPicked 的期望值，提前的轮数
-	float aFactor1 = 1.0f + aAdvancedLength1 / aExpectedLength1 * 2.0f; // = aWeight * aLastPicked * 2 + aWeight * 2 - 1
-	float aFactor2 = 1.0f + aAdvancedLength2 / aExpectedLength2 * 2.0f; // = aSecondLastPicked * aWeight + aWeight - 1
+	float aExpectedLength1 = 1.0f / aWeight;
+	float aExpectedLength2 = aExpectedLength1 * 2.0f;
+	float aAdvancedLength1 = aLastPicked + 1.0f - aExpectedLength1;
+	float aAdvancedLength2 = aSecondLastPicked + 1.0f - aExpectedLength2;
+	float aFactor1 = 1.0f + aAdvancedLength1 / aExpectedLength1 * 2.0f; 
+	float aFactor2 = 1.0f + aAdvancedLength2 / aExpectedLength2 * 2.0f;
 	float aFactorFinal = ClampFloat(aFactor1 * 0.75f + aFactor2 * 0.25f, 0.01f, 100.0f);
 	return aWeight * aFactorFinal;
 }
@@ -818,7 +817,7 @@ void TodSandImageIfNeeded(Image *theImage)
 	{
 		FixPixelsOnAlphaEdgeForBlending(theImage);
 		//((MemoryImage*)theImage)->mGPUFlags &= ~D3DIMAGEFLAG_SANDING;
-		SetBit((unsigned int &)aImage->mGPUFlags, D3DIMAGEFLAG_SANDING, false); // 清除标记
+		SetBit((unsigned int &)aImage->mGPUFlags, D3DIMAGEFLAG_SANDING, false);
 	}
 }
 
@@ -1022,20 +1021,20 @@ uint32_t AverageNearByPixels(MemoryImage *theImage, uint32_t *thePixel, int x, i
 	int aBlue = 0;
 	int aBitsCount = 0;
 
-	for (int i = -1; i <= 1; i++) // 依次循环上方、当前、下方的一行
+	for (int i = -1; i <= 1; i++)
 	{
-		if (i == 0) // 排除当前行
+		if (i == 0)
 		{
 			continue;
 		}
 
-		for (int j = -1; j <= 1; j++) // 依次循环左方、当前、右方的一列
+		for (int j = -1; j <= 1; j++)
 		{
 			if ((x != 0 || j != -1) && (x != theImage->mWidth - 1 || j != 1) && (y != 0 || i != -1) &&
 				(y != theImage->mHeight - 1 || i != 1))
 			{
 				unsigned long aPixel = *(thePixel + i * theImage->mWidth + j);
-				if (aPixel & 0xFF000000UL) // 如果不是透明像素
+				if (aPixel & 0xFF000000UL)
 				{
 					aRed += (aPixel >> 16) & 0x000000FFUL;
 					aGreen += (aPixel >> 8) & 0x000000FFUL;
@@ -1065,7 +1064,7 @@ void FixPixelsOnAlphaEdgeForBlending(Image *theImage)
 	if (aImage->mBits == nullptr)
 		return;
 
-	aImage->CommitBits(); // 分析 mHasTrans 和 mHasAlpha
+	aImage->CommitBits();
 	if (!aImage->mHasTrans)
 		return;
 
@@ -1077,9 +1076,9 @@ void FixPixelsOnAlphaEdgeForBlending(Image *theImage)
 	{
 		for (int x = 0; x < theImage->mWidth; x++)
 		{
-			if ((*aBitsPtr & 0xFF000000UL) == 0) // 如果像素的不透明度为 0
+			if ((*aBitsPtr & 0xFF000000UL) == 0)
 			{
-				*aBitsPtr = AverageNearByPixels(aImage, aBitsPtr, x, y); // 计算该点周围非透明像素的平均颜色
+				*aBitsPtr = AverageNearByPixels(aImage, aBitsPtr, x, y);
 			}
 
 			aBitsPtr++;
@@ -1188,13 +1187,13 @@ Color ColorAdd(const Color &theColor1, const Color &theColor2)
 	int b = theColor1.mBlue + theColor2.mBlue;
 	int a = theColor1.mAlpha + theColor2.mAlpha;
 
-	return Color(ClampInt(r, 0, 255), ClampInt(g, 0, 255), ClampInt(b, 0, 255), ClampInt(a, 0, 255)); // 线性减淡
+	return Color(ClampInt(r, 0, 255), ClampInt(g, 0, 255), ClampInt(b, 0, 255), ClampInt(a, 0, 255));
 }
 
 //0x513020
 int ColorComponentMultiply(int theColor1, int theColor2)
 {
-	return ClampInt(theColor1 * theColor2 / 255, 0, 255); // 正片叠底
+	return ClampInt(theColor1 * theColor2 / 255, 0, 255);
 }
 
 //0x513050
@@ -1203,7 +1202,7 @@ Color ColorsMultiply(const Color &theColor1, const Color &theColor2)
 	return Color(ColorComponentMultiply(theColor1.mRed, theColor2.mRed),
 				 ColorComponentMultiply(theColor1.mGreen, theColor2.mGreen),
 				 ColorComponentMultiply(theColor1.mBlue, theColor2.mBlue),
-				 ColorComponentMultiply(theColor1.mAlpha, theColor2.mAlpha)); // 正片叠底
+				 ColorComponentMultiply(theColor1.mAlpha, theColor2.mAlpha));
 }
 
 //0x513120
