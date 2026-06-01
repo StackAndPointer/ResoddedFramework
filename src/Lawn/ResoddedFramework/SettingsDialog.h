@@ -26,6 +26,7 @@ class SettingsDialog : public LawnDialog, public Sexy::CheckboxListener, public 
 		SETTINGS_VSYNC,
 		SETTINGS_FULLSCREEN,
 		SETTINGS_HIGHQUALITY,
+		SETTINGS_HIGHRESOLUTION,
 		SETTINGS_OPEN_SAVE_FOLDER,
 		SETTINGS_RENDER_LIST,
 		SETTINGS_WINDOW_SIZES,
@@ -38,6 +39,7 @@ class SettingsDialog : public LawnDialog, public Sexy::CheckboxListener, public 
 	Sexy::Checkbox *mFullscreenCheckbox;
 	Sexy::Checkbox *mVSyncCheckbox;
 	Sexy::Checkbox *mHighQualityCheckbox;
+	Sexy::Checkbox *mHighResolutionCheckbox;
 	Sexy::ListWidget *mRendererList;
 	Sexy::ListWidget *mSizesList;
 	LawnScrollbar *mOptionsSlider;
