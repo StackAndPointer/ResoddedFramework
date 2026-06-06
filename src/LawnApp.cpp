@@ -65,7 +65,7 @@
 #endif
 
 //Do not edit this. - Electr0Gunner
-Version LawnApp::gResoddedVersion(1, 0, 0, 978);
+Version LawnApp::gResoddedVersion(1, 0, 0, 980);
 
 bool gIsPartnerBuild = false;
 bool gSlowMo = false;
@@ -3478,10 +3478,6 @@ void LawnApp::TraceLoadGroup(const char *theGroupName, int theGroupTime, int the
 }
 
 /* #################################################################################################### */
-
-void LawnApp::DoHighScoreDialog()
-{
-}
 
 void LawnApp::DoRegister()
 {
